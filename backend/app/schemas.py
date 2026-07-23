@@ -54,3 +54,15 @@ class ChampionStats(BaseModel):
     avg_kda: float  # (kills + assists) / deaths, deaths floored at 1
     avg_cs_per_min: float
     form_score: float  # 0..1-ish "recent form" — win confidence nudged by KDA
+
+
+class ChampionPool(BaseModel):
+    """A player's recent champion pool, folded from their match history.
+
+    Empty lists are a valid, non-error result — a player with few or no games
+    simply has a small (or empty) pool.
+    """
+
+    total_games: int
+    champions: list[ChampionStats]
+    top: list[ChampionStats]

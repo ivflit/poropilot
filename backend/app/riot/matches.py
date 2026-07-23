@@ -6,8 +6,14 @@ cached per match id by the client (a finished game is immutable), so repeat
 analysis costs no extra Riot calls.
 """
 
-from .client import RiotClient
+import logging
+
+from ..schemas import ChampionPool
+from .analysis import aggregate_champion_stats, top_champions
+from .client import RiotAPIError, RiotClient
 from .regions import platform_host, regional_route
+
+logger = logging.getLogger(__name__)
 
 RIOT_MAX_IDS_PER_PAGE = 100
 
@@ -38,10 +44,36 @@ async def fetch_recent_matches(
 ) -> list[dict]:
     """Fetch full match detail for the PUUID's last `count` games.
 
-    Ids are paged; each match is fetched via the client's per-match cache.
+    Ids are paged; each match is fetched via the client's per-match cache. A
+    single match that can't be fetched (deleted, or a transient Riot error) is
+    skipped rather than sinking the whole analysis — important for players with
+    only a handful of games, where one bad match would otherwise erase the lot.
     """
     platform = platform_host(region_code)
     cluster = regional_route(platform)
 
     ids = await recent_match_ids(client, cluster, puuid, count)
-    return [await client.match(cluster, match_id) for match_id in ids]
+    matches: list[dict] = []
+    for match_id in ids:
+        try:
+            matches.append(await client.match(cluster, match_id))
+        except RiotAPIError as exc:
+            logger.warning("Skipping match %s: %s", match_id, exc)
+    return matches
+
+
+async def analyse_champion_pool(
+    client: RiotClient, region_code: str, puuid: str, count: int = 20, top: int = 5
+) -> ChampionPool:
+    """Fold a PUUID's recent matches into a champion-pool summary.
+
+    Safe for players with few or no ranked games: an empty history yields an
+    empty pool (no games, no champions) rather than an error.
+    """
+    matches = await fetch_recent_matches(client, region_code, puuid, count)
+    stats = aggregate_champion_stats(matches, puuid)
+    return ChampionPool(
+        total_games=sum(s.games for s in stats),
+        champions=stats,
+        top=top_champions(stats, limit=top),
+    )

@@ -63,10 +63,10 @@ Do **T1 first** — it's unblocked and everything visual depends on it.
 - **Priority:** p2 · **Area:** backend · **Depends on:** T3 · **Ralph:** no
 - **Why:** "What changed for the champs I play" — uses web search + Claude.
 - **Acceptance criteria**
-  - [ ] `GET /api/patch-digest?champions=...` returns a summarised digest.
-  - [ ] Digest is scoped to the passed champions.
-  - [ ] Result cached for the current patch.
-  - [ ] Unit test with a stubbed AI client asserts the response shape.
+  - [x] `GET /api/patch-digest?champions=...` returns a summarised digest.
+  - [x] Digest is scoped to the passed champions.
+  - [x] Result cached for the current patch.
+  - [x] Unit test with a stubbed AI client asserts the response shape.
 
 ### T6 — Redis cache backend
 - **Priority:** p3 · **Area:** infra · **Depends on:** — · **Ralph:** no

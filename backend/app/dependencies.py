@@ -22,3 +22,11 @@ async def get_champion_map(request: Request) -> dict[int, Champion]:
         service = ChampionService(state.http)
         state.ddragon_version, state.champions = await service.load()
     return state.champions
+
+
+async def get_ddragon_version(request: Request) -> str:
+    """The current Data Dragon (patch) version, loading champion data if needed."""
+    state = request.app.state
+    if not getattr(state, "ddragon_version", None):
+        await get_champion_map(request)
+    return state.ddragon_version

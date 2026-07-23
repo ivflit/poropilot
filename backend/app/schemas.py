@@ -56,6 +56,16 @@ class ChampionStats(BaseModel):
     form_score: float  # 0..1-ish "recent form" — win confidence nudged by KDA
 
 
+class PatchNote(BaseModel):
+    champion: str
+    summary: str
+
+
+class PatchDigest(BaseModel):
+    patch: str
+    notes: list[PatchNote]
+
+
 class ChampionPool(BaseModel):
     """A player's recent champion pool, folded from their match history.
 

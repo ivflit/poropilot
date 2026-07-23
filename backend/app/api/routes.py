@@ -1,15 +1,18 @@
 """API routes. Kept thin — validation via Pydantic, work delegated to services."""
 
+import asyncio
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from ..ai.draft import suggest_pick
-from ..dependencies import get_champion_map, get_riot_client
+from ..ai.patch import patch_digest
+from ..cache import cache
+from ..dependencies import get_champion_map, get_ddragon_version, get_riot_client
 from ..riot.client import RiotAPIError, RiotClient, load_profile
 from ..riot.matches import load_pool_for_riot_id
 from ..riot.regions import PLATFORMS, UnknownRegionError
-from ..schemas import Champion, ChampionPool, DraftRequest, DraftResponse, Profile
+from ..schemas import Champion, ChampionPool, DraftRequest, DraftResponse, PatchDigest, Profile
 
 router = APIRouter(prefix="/api", tags=["poropilot"])
 
@@ -56,6 +59,21 @@ async def get_pool(
     except RiotAPIError as exc:
         status = 404 if exc.status_code == 404 else 502
         raise HTTPException(status_code=status, detail=str(exc)) from exc
+
+
+@router.get("/patch-digest", response_model=PatchDigest)
+async def get_patch_digest(
+    champions: Annotated[list[str], Query()],
+    version: Annotated[str, Depends(get_ddragon_version)],
+) -> PatchDigest:
+    key = f"patch-digest:{version}:{','.join(sorted(champions))}"
+    cached = await cache.get(key)
+    if cached is not None:
+        return PatchDigest(**cached)
+    # Blocking Anthropic call — offload to a thread so the event loop keeps serving.
+    result = await asyncio.to_thread(patch_digest, champions, version)
+    await cache.set(key, result, ttl=86400)  # stable for the life of a patch
+    return PatchDigest(**result)
 
 
 @router.post("/draft", response_model=DraftResponse)

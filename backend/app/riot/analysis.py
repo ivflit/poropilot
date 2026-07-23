@@ -8,7 +8,7 @@ a fixture match set.
 
 import math
 
-from ..schemas import ChampionStats
+from app.schemas import ChampionStats
 
 WILSON_Z = 1.96  # z for a 95% confidence interval
 

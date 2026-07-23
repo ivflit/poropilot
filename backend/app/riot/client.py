@@ -8,10 +8,10 @@ the app lifespan) so connections are pooled. Match details are cached long
 
 import httpx
 
-from ..cache import cache
-from ..config import settings
-from ..schemas import MasteryEntry, Profile
-from .regions import platform_host, regional_route
+from app.cache import cache
+from app.config import settings
+from app.riot.regions import platform_host, regional_route
+from app.schemas import MasteryEntry, Profile
 
 
 class RiotAPIError(RuntimeError):

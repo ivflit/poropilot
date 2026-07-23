@@ -8,7 +8,7 @@ against a stubbed dataset without any network access.
 
 import httpx
 
-from .schemas import Champion
+from app.schemas import Champion
 
 DDRAGON = "https://ddragon.leagueoflegends.com"
 

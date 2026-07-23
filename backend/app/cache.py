@@ -7,7 +7,7 @@ active. Values must be JSON-serialisable (Riot API responses are).
 import json
 import time
 
-from .config import settings
+from app.config import settings
 
 
 class InMemoryCache:

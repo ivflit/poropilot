@@ -13,10 +13,10 @@ dev key's ~20 req/s budget — batched and cached, never a burst.
 import asyncio
 import logging
 
-from ..schemas import ChampionPool
-from .analysis import aggregate_champion_stats, top_champions
-from .client import RiotAPIError, RiotClient
-from .regions import platform_host, regional_route
+from app.riot.analysis import aggregate_champion_stats, top_champions
+from app.riot.client import RiotAPIError, RiotClient
+from app.riot.regions import platform_host, regional_route
+from app.schemas import ChampionPool
 
 logger = logging.getLogger(__name__)
 

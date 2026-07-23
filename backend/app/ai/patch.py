@@ -9,7 +9,7 @@ import json
 
 import anthropic
 
-from ..config import settings
+from app.config import settings
 
 _client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from the environment
 

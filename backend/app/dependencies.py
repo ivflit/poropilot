@@ -6,9 +6,9 @@ lifespan, so connections are pooled across requests rather than opened per call.
 
 from fastapi import Request
 
-from .champions import ChampionService
-from .riot.client import RiotClient
-from .schemas import Champion
+from app.champions import ChampionService
+from app.riot.client import RiotClient
+from app.schemas import Champion
 
 
 def get_riot_client(request: Request) -> RiotClient:

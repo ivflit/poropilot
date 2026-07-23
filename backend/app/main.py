@@ -7,9 +7,9 @@ import httpx
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .api.routes import router
-from .champions import ChampionService
-from .config import settings
+from app.api.routes import router
+from app.champions import ChampionService
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 

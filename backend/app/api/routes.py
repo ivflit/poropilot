@@ -5,14 +5,14 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from ..ai.draft import suggest_pick
-from ..ai.patch import patch_digest
-from ..cache import cache
-from ..dependencies import get_champion_map, get_ddragon_version, get_riot_client
-from ..riot.client import RiotAPIError, RiotClient, load_profile
-from ..riot.matches import load_pool_for_riot_id
-from ..riot.regions import PLATFORMS, UnknownRegionError
-from ..schemas import Champion, ChampionPool, DraftRequest, DraftResponse, PatchDigest, Profile
+from app.ai.draft import suggest_pick
+from app.ai.patch import patch_digest
+from app.cache import cache
+from app.dependencies import get_champion_map, get_ddragon_version, get_riot_client
+from app.riot.client import RiotAPIError, RiotClient, load_profile
+from app.riot.matches import load_pool_for_riot_id
+from app.riot.regions import PLATFORMS, UnknownRegionError
+from app.schemas import Champion, ChampionPool, DraftRequest, DraftResponse, PatchDigest, Profile
 
 router = APIRouter(prefix="/api", tags=["poropilot"])
 

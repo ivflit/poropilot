@@ -48,7 +48,7 @@ Do **T1 first** — it's unblocked and everything visual depends on it.
   - [x] Return the player's top champions by a sensible "form" score.
   - [x] Handle players with few/no ranked games without erroring.
   - [x] Stay within Riot rate limits (batched + cached).
-  - [ ] Unit tests over a fixture match set assert the aggregation maths.
+  - [x] Unit tests over a fixture match set assert the aggregation maths.
 
 ### T4 — AI draft assistant UI
 - **Priority:** p2 · **Area:** frontend · **Depends on:** T1 · **Ralph:** no

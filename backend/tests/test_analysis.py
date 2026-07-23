@@ -1,8 +1,12 @@
+import json
 import unittest
+from pathlib import Path
 
 from app.riot.analysis import aggregate_champion_stats, top_champions
 
 PUUID = "me"
+
+FIXTURE = Path(__file__).parent / "fixtures" / "champion_pool_matches.json"
 
 
 def match(champion_id, name, win, k, d, a, cs, duration):
@@ -112,6 +116,70 @@ class FormScoreTests(unittest.TestCase):
     def test_top_champions_respects_limit(self):
         matches = [match(cid, str(cid), True, 5, 2, 3, 100, 1200) for cid in range(1, 6)]
         self.assertEqual(len(top_champions(aggregate_champion_stats(matches, PUUID), limit=3)), 3)
+
+
+class FixtureMatchSetTests(unittest.TestCase):
+    """Fold a realistic saved match set and assert the aggregation maths.
+
+    The fixture holds six Match-V5 games for one PUUID across three champions
+    (some sharing a lobby with other players), so it exercises PUUID filtering,
+    multi-game folding, jungle CS and the games-vs-form ordering split in one go.
+    """
+
+    FIXTURE_PUUID = "por-por-por"
+
+    @classmethod
+    def setUpClass(cls):
+        cls.matches = json.loads(FIXTURE.read_text())
+        cls.stats = aggregate_champion_stats(cls.matches, cls.FIXTURE_PUUID)
+        cls.by_id = {s.champion_id: s for s in cls.stats}
+
+    def test_only_the_analysed_puuid_is_folded(self):
+        # Three champions for our PUUID; the "someone-else" rows are ignored.
+        self.assertEqual(set(self.by_id), {157, 238, 64})
+
+    def test_yasuo_aggregates(self):
+        yasuo = self.by_id[157]
+        self.assertEqual(yasuo.champion_name, "Yasuo")
+        self.assertEqual(yasuo.games, 3)
+        self.assertEqual(yasuo.wins, 2)
+        self.assertEqual(yasuo.win_rate, 0.6667)  # 2/3
+        # kills 8+3+6=17, assists 6+5+9=20, deaths 4+7+5=16 → 37/16
+        self.assertEqual(yasuo.avg_kda, 2.31)
+        # cs (210+180+250)=640 over (25+30+26.6667)=81.6667 min
+        self.assertEqual(yasuo.avg_cs_per_min, 7.84)
+
+    def test_zed_aggregates(self):
+        zed = self.by_id[238]
+        self.assertEqual(zed.games, 2)
+        self.assertEqual(zed.wins, 2)
+        self.assertEqual(zed.win_rate, 1.0)
+        # kills 21, assists 10, deaths 5 → 31/5
+        self.assertEqual(zed.avg_kda, 6.2)
+        # cs (160+150)=310 over (20+16.6667)=36.6667 min
+        self.assertEqual(zed.avg_cs_per_min, 8.45)
+
+    def test_leesin_aggregates_jungle_cs_and_a_loss(self):
+        lee = self.by_id[64]
+        self.assertEqual(lee.games, 1)
+        self.assertEqual(lee.wins, 0)
+        self.assertEqual(lee.win_rate, 0.0)
+        # (2 kills + 10 assists) / 8 deaths = 1.5
+        self.assertEqual(lee.avg_kda, 1.5)
+        # (30 lane + 120 jungle) / 30 min = 5.0
+        self.assertEqual(lee.avg_cs_per_min, 5.0)
+
+    def test_default_order_is_by_games_played(self):
+        self.assertEqual([s.champion_id for s in self.stats], [157, 238, 64])
+
+    def test_form_promotes_the_proven_winner_over_the_most_played(self):
+        # Yasuo has the most games, but Zed's flawless 2-0 with a higher KDA wins
+        # on form — the Wilson-plus-KDA maths, asserted over the fixture set.
+        top = top_champions(self.stats)
+        self.assertEqual(top[0].champion_id, 238)
+        self.assertEqual([s.champion_id for s in top], [238, 157, 64])
+        self.assertGreater(self.by_id[238].form_score, self.by_id[157].form_score)
+        self.assertEqual(self.by_id[64].form_score, 0.0)  # a lone loss scores 0
 
 
 if __name__ == "__main__":

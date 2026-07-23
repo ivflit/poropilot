@@ -34,3 +34,10 @@ class Suggestion(BaseModel):
 
 class DraftResponse(BaseModel):
     suggestions: list[Suggestion]
+
+
+class Champion(BaseModel):
+    champion_id: int
+    name: str
+    title: str
+    image_url: str

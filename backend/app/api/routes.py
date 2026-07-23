@@ -5,10 +5,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 
 from ..ai.draft import suggest_pick
-from ..dependencies import get_riot_client
+from ..dependencies import get_champion_map, get_riot_client
 from ..riot.client import RiotAPIError, RiotClient, load_profile
 from ..riot.regions import PLATFORMS, UnknownRegionError
-from ..schemas import DraftRequest, DraftResponse, Profile
+from ..schemas import Champion, DraftRequest, DraftResponse, Profile
 
 router = APIRouter(prefix="/api", tags=["poropilot"])
 
@@ -16,6 +16,13 @@ router = APIRouter(prefix="/api", tags=["poropilot"])
 @router.get("/regions")
 def list_regions() -> dict[str, list[str]]:
     return {"regions": sorted(PLATFORMS)}
+
+
+@router.get("/champions")
+async def list_champions(
+    champions: Annotated[dict[int, Champion], Depends(get_champion_map)],
+) -> dict[int, Champion]:
+    return champions
 
 
 @router.get("/summoner/{region}/{name}/{tag}", response_model=Profile)

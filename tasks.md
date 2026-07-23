@@ -22,11 +22,11 @@ Do **T1 first** — it's unblocked and everything visual depends on it.
 - **Why:** Riot returns numeric champion IDs; we need names and icons to show
   anything readable, and every other feature needs this mapping.
 - **Acceptance criteria**
-  - [ ] Backend fetches and caches the current Data Dragon version on startup.
-  - [ ] A service maps `championId` → `{name, title, imageUrl}`.
-  - [ ] `GET /api/champions` returns the full mapping.
-  - [ ] Data is cached (no Data Dragon call per request).
-  - [ ] Unit tests cover the ID→name mapping with a stubbed dataset.
+  - [x] Backend fetches and caches the current Data Dragon version on startup.
+  - [x] A service maps `championId` → `{name, title, imageUrl}`.
+  - [x] `GET /api/champions` returns the full mapping.
+  - [x] Data is cached (no Data Dragon call per request).
+  - [x] Unit tests cover the ID→name mapping with a stubbed dataset.
 
 ### T2 — Show champion names and icons in the profile
 - **Priority:** p1 · **Area:** frontend · **Depends on:** T1 · **Ralph:** no

@@ -47,7 +47,7 @@ Do **T1 first** — it's unblocked and everything visual depends on it.
   - [x] Aggregate games, wins, win-rate, avg KDA and CS/min per champion.
   - [x] Return the player's top champions by a sensible "form" score.
   - [x] Handle players with few/no ranked games without erroring.
-  - [ ] Stay within Riot rate limits (batched + cached).
+  - [x] Stay within Riot rate limits (batched + cached).
   - [ ] Unit tests over a fixture match set assert the aggregation maths.
 
 ### T4 — AI draft assistant UI

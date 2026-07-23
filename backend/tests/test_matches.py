@@ -1,10 +1,16 @@
+import asyncio
 import unittest
 
 import httpx
 
 from app.cache import cache
 from app.riot.client import RiotAPIError, RiotClient
-from app.riot.matches import analyse_champion_pool, fetch_recent_matches, recent_match_ids
+from app.riot.matches import (
+    MAX_CONCURRENT_MATCH_REQUESTS,
+    analyse_champion_pool,
+    fetch_recent_matches,
+    recent_match_ids,
+)
 
 
 class FakePagingClient:
@@ -103,6 +109,41 @@ class FetchResilienceTests(unittest.IsolatedAsyncioTestCase):
         )
         matches = await fetch_recent_matches(client, "EUW", "puuid", count=3)
         self.assertEqual([m["metadata"]["matchId"] for m in matches], ["M0", "M2"])
+
+
+class ConcurrencyTrackingClient:
+    """Records the peak number of match fetches in flight at once."""
+
+    def __init__(self, total: int) -> None:
+        self.all_ids = [f"M{i}" for i in range(total)]
+        self.in_flight = 0
+        self.peak_in_flight = 0
+
+    async def match_ids(self, cluster, puuid, start=0, count=20):
+        return self.all_ids[start : start + count]
+
+    async def match(self, cluster, match_id):
+        self.in_flight += 1
+        self.peak_in_flight = max(self.peak_in_flight, self.in_flight)
+        await asyncio.sleep(0)  # yield so concurrent fetches pile up
+        self.in_flight -= 1
+        return {"id": match_id}
+
+
+class RateLimitTests(unittest.IsolatedAsyncioTestCase):
+    async def test_in_flight_fetches_are_capped(self):
+        # More matches than the cap, so an uncapped fetch would burst past it.
+        total = MAX_CONCURRENT_MATCH_REQUESTS * 3
+        client = ConcurrencyTrackingClient(total=total)
+        matches = await fetch_recent_matches(client, "EUW", "puuid", count=total)
+        self.assertEqual(len(matches), total)
+        self.assertEqual(client.peak_in_flight, MAX_CONCURRENT_MATCH_REQUESTS)
+
+    async def test_fetches_are_batched_not_serial(self):
+        client = ConcurrencyTrackingClient(total=5)
+        await fetch_recent_matches(client, "EUW", "puuid", count=5)
+        # Fewer matches than the cap: all five run concurrently, not one-by-one.
+        self.assertEqual(client.peak_in_flight, 5)
 
 
 class AnalyseChampionPoolTests(unittest.IsolatedAsyncioTestCase):

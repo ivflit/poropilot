@@ -41,3 +41,15 @@ class Champion(BaseModel):
     name: str
     title: str
     image_url: str
+
+
+class ChampionStats(BaseModel):
+    """Per-champion aggregate over a set of recent matches."""
+
+    champion_id: int
+    champion_name: str
+    games: int
+    wins: int
+    win_rate: float  # 0..1
+    avg_kda: float  # (kills + assists) / deaths, deaths floored at 1
+    avg_cs_per_min: float

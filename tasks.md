@@ -32,10 +32,10 @@ Do **T1 first** — it's unblocked and everything visual depends on it.
 - **Priority:** p1 · **Area:** frontend · **Depends on:** T1 · **Ralph:** no
 - **Why:** The profile currently shows "Champion 157" — unusable.
 - **Acceptance criteria**
-  - [ ] Mastery list shows champion name + icon, not the raw ID.
-  - [ ] Ranked tier/rank/LP is rendered clearly.
-  - [ ] Graceful empty state for unranked players.
-  - [ ] Playwright test covers a rendered profile (mocked API).
+  - [x] Mastery list shows champion name + icon, not the raw ID.
+  - [x] Ranked tier/rank/LP is rendered clearly.
+  - [x] Graceful empty state for unranked players.
+  - [x] Playwright test covers a rendered profile (mocked API).
 
 ### T3 — Champion pool and win-rate analysis
 - **Priority:** p1 · **Area:** backend · **Depends on:** T1 · **Ralph:** **yes**

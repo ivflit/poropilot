@@ -1,7 +1,18 @@
 <script setup>
+import { onMounted } from "vue";
 import { useSummoner } from "../composables/useSummoner";
+import { useChampions } from "../composables/useChampions";
 
 const { region, riotId, profile, error, loading, onInput } = useSummoner();
+const { load: loadChampions, lookup } = useChampions();
+
+onMounted(loadChampions);
+
+const QUEUE_LABELS = {
+  RANKED_SOLO_5x5: "Solo/Duo",
+  RANKED_FLEX_SR: "Flex",
+};
+const queueLabel = (queueType) => QUEUE_LABELS[queueType] ?? queueType;
 </script>
 
 <template>
@@ -34,10 +45,28 @@ const { region, riotId, profile, error, loading, onInput } = useSummoner();
     <section v-if="profile" class="profile">
       <h2>{{ profile.riot_id }}</h2>
       <p>Region {{ profile.region }} · Level {{ profile.level }}</p>
+
+      <h3>Ranked</h3>
+      <ul v-if="profile.ranked.length" class="ranked">
+        <li v-for="r in profile.ranked" :key="r.queueType">
+          {{ queueLabel(r.queueType) }}: {{ r.tier }} {{ r.rank }} —
+          {{ r.leaguePoints }} LP ({{ r.wins }}W / {{ r.losses }}L)
+        </li>
+      </ul>
+      <p v-else class="muted">Unranked</p>
+
       <h3>Top champions</h3>
-      <ul>
-        <li v-for="m in profile.top_masteries" :key="m.champion_id">
-          Champion {{ m.champion_id }} — {{ m.points.toLocaleString() }} pts (M{{ m.level }})
+      <ul class="champs">
+        <li v-for="m in profile.top_masteries" :key="m.champion_id" class="champ">
+          <img
+            v-if="lookup(m.champion_id)"
+            :src="lookup(m.champion_id).image_url"
+            :alt="lookup(m.champion_id).name"
+            width="32"
+            height="32"
+          />
+          <span class="name">{{ lookup(m.champion_id)?.name ?? `Champion ${m.champion_id}` }}</span>
+          <span class="pts">{{ m.points.toLocaleString() }} pts · M{{ m.level }}</span>
         </li>
       </ul>
     </section>
@@ -67,5 +96,29 @@ input {
 }
 .profile {
   margin-top: 1.5rem;
+}
+.ranked {
+  list-style: none;
+  padding: 0;
+}
+.champs {
+  list-style: none;
+  padding: 0;
+}
+.champ {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+}
+.champ img {
+  border-radius: 4px;
+}
+.champ .name {
+  font-weight: 600;
+}
+.champ .pts {
+  color: #5b6674;
+  margin-left: auto;
 }
 </style>

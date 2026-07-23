@@ -8,10 +8,10 @@ pool based on your role, allied picks and enemy bans.
 > Portfolio project demonstrating full-stack development (Vue + FastAPI), external API integration,
 > AI pipelines (Claude), automated testing and CI/CD.
 
-<!-- Add once deployed:
 ![CI](https://github.com/ivflit/poropilot/actions/workflows/ci.yml/badge.svg)
-**Live demo:** https://poropilot.example.com
--->
+
+<!-- Add once deployed: **Live demo:** https://poropilot.example.com -->
+
 
 ## Stack
 

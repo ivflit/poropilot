@@ -43,7 +43,7 @@ Do **T1 first** — it's unblocked and everything visual depends on it.
   now. Involves paging match history, aggregating per champion, handling many
   edge cases and keeping within rate limits. Big and fiddly → Ralph.
 - **Acceptance criteria**
-  - [ ] Fetch the last N matches for a PUUID (paged, cached per match).
+  - [x] Fetch the last N matches for a PUUID (paged, cached per match).
   - [ ] Aggregate games, wins, win-rate, avg KDA and CS/min per champion.
   - [ ] Return the player's top champions by a sensible "form" score.
   - [ ] Handle players with few/no ranked games without erroring.

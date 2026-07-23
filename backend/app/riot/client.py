@@ -74,12 +74,14 @@ class RiotClient:
         )
 
     # --- Match-V5 (regional) ---
-    async def match_ids(self, region_cluster: str, puuid: str, count: int = 20):
+    async def match_ids(self, region_cluster: str, puuid: str, start: int = 0, count: int = 20):
+        # Riot caps a single /ids request at 100; callers page via `start`.
+        count = min(count, 100)
         return await self._get(
             region_cluster,
-            f"/lol/match/v5/matches/by-puuid/{puuid}/ids?count={count}",
+            f"/lol/match/v5/matches/by-puuid/{puuid}/ids?start={start}&count={count}",
             ttl=120,
-            cache_key=f"matchids:{region_cluster}:{puuid}:{count}",
+            cache_key=f"matchids:{region_cluster}:{puuid}:{start}:{count}",
         )
 
     async def match(self, region_cluster: str, match_id: str):

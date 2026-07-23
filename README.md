@@ -60,6 +60,12 @@ cd frontend && npx playwright test                # frontend e2e
 strength from your own mastery + recent win-rates, and uses the AI pipeline (web search + Claude) for
 patch summaries. See `PROJECT.md` (the build plan) for detail.
 
+## Deployment
+
+Production runs on a single DigitalOcean droplet via Docker Compose behind Nginx
+(TLS), with a GitHub Actions deploy on every push to `main`. Full runbook:
+[`deploy/README.md`](deploy/README.md).
+
 ## ⚠️ Never commit your API keys — they live in `backend/.env` (gitignored).
 
 ---

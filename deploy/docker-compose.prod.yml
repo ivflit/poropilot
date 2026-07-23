@@ -1,0 +1,34 @@
+# Production stack for a single droplet: Nginx (TLS + static + reverse proxy),
+# the FastAPI backend, and Redis. Run from the repo root on the server:
+#   docker compose -f deploy/docker-compose.prod.yml up -d --build
+services:
+  backend:
+    build:
+      context: ../backend
+    env_file:
+      - ../backend/.env          # RIOT_API_KEY, ANTHROPIC_API_KEY, ANTHROPIC_MODEL
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    expose:
+      - "8000"                    # internal only; Nginx is the public entrypoint
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/web.Dockerfile
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro   # certs obtained on the host via certbot
+      - /var/www/certbot:/var/www/certbot:ro   # ACME http-01 challenge files
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped

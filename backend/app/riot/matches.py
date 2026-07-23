@@ -93,3 +93,16 @@ async def analyse_champion_pool(
         champions=stats,
         top=top_champions(stats, limit=top),
     )
+
+
+async def load_pool_for_riot_id(
+    client: RiotClient, region_code: str, name: str, tag: str, count: int = 20, top: int = 5
+) -> ChampionPool:
+    """Resolve a Riot ID to a PUUID, then summarise its recent champion pool.
+
+    Match ids and detail are cached by the client, so a repeat call within the
+    cache TTL costs no extra Riot requests.
+    """
+    cluster = regional_route(platform_host(region_code))
+    account = await client.account_by_riot_id(cluster, name, tag)
+    return await analyse_champion_pool(client, region_code, account["puuid"], count=count, top=top)

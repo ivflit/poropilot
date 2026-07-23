@@ -7,6 +7,7 @@ export function useSummoner() {
   const region = ref("EUW");
   const riotId = ref(""); // "name#tag"
   const profile = ref(null);
+  const pool = ref(null);
   const error = ref("");
   const loading = ref(false);
 
@@ -21,6 +22,7 @@ export function useSummoner() {
   async function search() {
     error.value = "";
     profile.value = null;
+    pool.value = null;
 
     const raw = riotId.value.trim();
     if (!raw.includes("#")) {
@@ -30,23 +32,35 @@ export function useSummoner() {
 
     const [name, tag] = raw.split("#");
     const key = `${region.value}:${name}#${tag}`;
+
     if (cache.has(key)) {
       profile.value = cache.get(key);
-      return;
+    } else {
+      loading.value = true;
+      try {
+        profile.value = await apiGet(summonerPath(name, tag));
+        cache.set(key, profile.value);
+      } catch (e) {
+        error.value = e.message;
+      } finally {
+        loading.value = false;
+      }
     }
 
-    loading.value = true;
-    try {
-      const path = `/api/summoner/${region.value}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`;
-      const data = await apiGet(path);
-      cache.set(key, data);
-      profile.value = data;
-    } catch (e) {
-      error.value = e.message;
-    } finally {
-      loading.value = false;
+    // The champion pool is best-effort — a failure here must not hide the profile.
+    if (profile.value) {
+      try {
+        pool.value = await apiGet(poolPath(name, tag));
+      } catch {
+        pool.value = null;
+      }
     }
   }
 
-  return { region, riotId, profile, error, loading, onInput, search };
+  const summonerPath = (name, tag) =>
+    `/api/summoner/${region.value}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`;
+  const poolPath = (name, tag) =>
+    `/api/pool/${region.value}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`;
+
+  return { region, riotId, profile, pool, error, loading, onInput, search };
 }

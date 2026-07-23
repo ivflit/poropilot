@@ -7,8 +7,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from ..ai.draft import suggest_pick
 from ..dependencies import get_champion_map, get_riot_client
 from ..riot.client import RiotAPIError, RiotClient, load_profile
+from ..riot.matches import load_pool_for_riot_id
 from ..riot.regions import PLATFORMS, UnknownRegionError
-from ..schemas import Champion, DraftRequest, DraftResponse, Profile
+from ..schemas import Champion, ChampionPool, DraftRequest, DraftResponse, Profile
 
 router = APIRouter(prefix="/api", tags=["poropilot"])
 
@@ -34,6 +35,22 @@ async def get_summoner(
 ) -> Profile:
     try:
         return await load_profile(client, region, name, tag)
+    except UnknownRegionError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RiotAPIError as exc:
+        status = 404 if exc.status_code == 404 else 502
+        raise HTTPException(status_code=status, detail=str(exc)) from exc
+
+
+@router.get("/pool/{region}/{name}/{tag}", response_model=ChampionPool)
+async def get_pool(
+    region: str,
+    name: str,
+    tag: str,
+    client: Annotated[RiotClient, Depends(get_riot_client)],
+) -> ChampionPool:
+    try:
+        return await load_pool_for_riot_id(client, region, name, tag)
     except UnknownRegionError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except RiotAPIError as exc:

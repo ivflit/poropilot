@@ -89,7 +89,7 @@ Do **T1 first** — it's unblocked and everything visual depends on it.
 - **Why:** T3 built and tested the champion-pool analysis, but it isn't wired to
   an endpoint or shown anywhere. Expose it and surface it in the UI.
 - **Acceptance criteria**
-  - [ ] `GET /api/pool/{region}/{name}/{tag}` returns the champion pool (top + per-champ stats).
-  - [ ] Result reuses cached match data (no extra Riot calls on repeat).
-  - [ ] Profile view shows the top champions with win-rate and form.
-  - [ ] Backend route test (stubbed client) and a Playwright test for the UI.
+  - [x] `GET /api/pool/{region}/{name}/{tag}` returns the champion pool (top + per-champ stats).
+  - [x] Result reuses cached match data (no extra Riot calls on repeat).
+  - [x] Profile view shows the top champions with win-rate and form.
+  - [x] Backend route test (stubbed client) and a Playwright test for the UI.

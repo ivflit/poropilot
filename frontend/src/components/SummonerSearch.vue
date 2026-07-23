@@ -3,7 +3,7 @@ import { onMounted } from "vue";
 import { useSummoner } from "../composables/useSummoner";
 import { useChampions } from "../composables/useChampions";
 
-const { region, riotId, profile, error, loading, onInput } = useSummoner();
+const { region, riotId, profile, pool, error, loading, onInput } = useSummoner();
 const { load: loadChampions, lookup } = useChampions();
 
 onMounted(loadChampions);
@@ -69,6 +69,25 @@ const queueLabel = (queueType) => QUEUE_LABELS[queueType] ?? queueType;
           <span class="pts">{{ m.points.toLocaleString() }} pts · M{{ m.level }}</span>
         </li>
       </ul>
+
+      <template v-if="pool && pool.top.length">
+        <h3>Recent form</h3>
+        <ul class="pool">
+          <li v-for="c in pool.top" :key="c.champion_id" class="champ">
+            <img
+              v-if="lookup(c.champion_id)"
+              :src="lookup(c.champion_id).image_url"
+              :alt="lookup(c.champion_id).name"
+              width="32"
+              height="32"
+            />
+            <span class="name">{{ c.champion_name }}</span>
+            <span class="pts">
+              {{ Math.round(c.win_rate * 100) }}% WR · {{ c.games }} games · form {{ c.form_score }}
+            </span>
+          </li>
+        </ul>
+      </template>
     </section>
   </div>
 </template>
@@ -101,7 +120,8 @@ input {
   list-style: none;
   padding: 0;
 }
-.champs {
+.champs,
+.pool {
   list-style: none;
   padding: 0;
 }

@@ -1,0 +1,38 @@
+@use "variables" as *;
+
+.search {
+  input {
+    flex: 1;
+  }
+
+  .profile {
+    margin-top: 1.5rem;
+  }
+
+  .ranked,
+  .champs,
+  .pool {
+    list-style: none;
+    padding: 0;
+  }
+
+  .champ {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0;
+
+    img {
+      border-radius: 4px;
+    }
+
+    .name {
+      font-weight: 600;
+    }
+
+    .pts {
+      color: $muted;
+      margin-left: auto;
+    }
+  }
+}

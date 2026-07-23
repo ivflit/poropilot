@@ -1,0 +1,37 @@
+@use "variables" as *;
+
+.picker {
+  margin-bottom: 0.75rem;
+
+  .picker-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .chips {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+  }
+
+  .chip {
+    background: $chip-bg;
+    border-radius: 999px;
+    padding: 0.1rem 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+
+    button {
+      border: none;
+      background: none;
+      cursor: pointer;
+      padding: 0;
+      color: $muted;
+    }
+  }
+}

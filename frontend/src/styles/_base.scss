@@ -1,0 +1,43 @@
+@use "variables" as *;
+
+:root {
+  font-family: $font-stack;
+  color: $ink;
+}
+
+main {
+  max-width: 640px;
+  margin: 3rem auto;
+  padding: 0 1rem;
+}
+
+h1 {
+  color: $accent;
+}
+
+.tagline {
+  color: $muted;
+}
+
+// Shared helpers used across components
+.row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.muted {
+  color: $muted;
+}
+
+.error {
+  color: $error;
+}
+
+select,
+input,
+button {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 1px solid $line;
+  border-radius: $radius;
+}

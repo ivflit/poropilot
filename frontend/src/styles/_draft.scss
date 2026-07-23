@@ -1,0 +1,46 @@
+@use "variables" as *;
+
+.draft {
+  margin-top: 2.5rem;
+  border-top: 1px solid $line;
+  padding-top: 1.5rem;
+
+  .role {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+
+    select {
+      margin-left: 0.5rem;
+    }
+  }
+
+  .go {
+    margin-top: 0.5rem;
+    padding: 0.5rem 1rem;
+    color: #fff;
+    background: $accent;
+    border: none;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+  }
+
+  .suggestions {
+    margin-top: 1rem;
+    padding-left: 1.2rem;
+
+    li {
+      margin-bottom: 0.75rem;
+    }
+  }
+
+  .conf {
+    color: $muted;
+    margin-left: 0.4rem;
+    font-size: 0.9rem;
+  }
+}

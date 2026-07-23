@@ -93,3 +93,13 @@ Do **T1 first** — it's unblocked and everything visual depends on it.
   - [x] Result reuses cached match data (no extra Riot calls on repeat).
   - [x] Profile view shows the top champions with win-rate and form.
   - [x] Backend route test (stubbed client) and a Playwright test for the UI.
+
+### T9 — SCSS styling system (remove inline component styles)
+- **Priority:** p3 · **Area:** frontend · **Depends on:** — · **Ralph:** no
+- **Why:** Styles are scattered across component `<style>` blocks. Centralise
+  them in an SCSS system with shared design tokens; components carry markup and
+  logic only.
+- **Acceptance criteria**
+  - [x] SCSS build set up (`sass`), with a `src/styles/` architecture and design tokens.
+  - [x] No `<style>` blocks remain in any `.vue` component.
+  - [x] App still renders correctly (all Playwright tests pass).

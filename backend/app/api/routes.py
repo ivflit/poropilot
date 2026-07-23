@@ -1,5 +1,7 @@
 """API routes. Kept thin — validation via Pydantic, work delegated to services."""
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from ..ai.draft import suggest_pick
@@ -21,7 +23,7 @@ async def get_summoner(
     region: str,
     name: str,
     tag: str,
-    client: RiotClient = Depends(get_riot_client),
+    client: Annotated[RiotClient, Depends(get_riot_client)],
 ) -> Profile:
     try:
         return await load_profile(client, region, name, tag)

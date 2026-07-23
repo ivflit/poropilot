@@ -1,0 +1,29 @@
+import { test, expect } from "@playwright/test";
+
+const CHAMPIONS = {
+  266: { champion_id: 266, name: "Aatrox", title: "the Darkin Blade", image_url: "http://x/Aatrox.png" },
+  103: { champion_id: 103, name: "Ahri", title: "the Nine-Tailed Fox", image_url: "http://x/Ahri.png" },
+};
+
+const SUGGESTIONS = {
+  suggestions: [
+    { champion: "Ahri", reason: "Strong pick into the enemy bans.", confidence: "high" },
+  ],
+};
+
+test.beforeEach(async ({ page }) => {
+  await page.route("**/api/champions", (route) => route.fulfill({ json: CHAMPIONS }));
+});
+
+test("suggests a pick from the draft board", async ({ page }) => {
+  await page.route("**/api/draft", (route) => route.fulfill({ json: SUGGESTIONS }));
+  await page.goto("/");
+
+  await page.getByLabel("Role").selectOption("MID");
+  await page.getByLabel("Your champion pool").selectOption("Ahri");
+  await page.getByRole("button", { name: "Add" }).first().click();
+  await page.getByRole("button", { name: "Suggest a pick" }).click();
+
+  await expect(page.locator(".suggestions")).toContainText("Ahri");
+  await expect(page.locator(".suggestions")).toContainText("Strong pick into the enemy bans.");
+});

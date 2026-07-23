@@ -54,10 +54,10 @@ Do **T1 first** — it's unblocked and everything visual depends on it.
 - **Priority:** p2 · **Area:** frontend · **Depends on:** T1 · **Ralph:** no
 - **Why:** The flagship AI feature; the backend endpoint already exists.
 - **Acceptance criteria**
-  - [ ] Draft board: pick role, add allied picks, add enemy bans (champion pickers).
-  - [ ] Calls `POST /api/draft` and renders ranked suggestions with reasons.
-  - [ ] Loading and error states handled.
-  - [ ] Playwright test covers a suggestion render (mocked API).
+  - [x] Draft board: pick role, add allied picks, add enemy bans (champion pickers).
+  - [x] Calls `POST /api/draft` and renders ranked suggestions with reasons.
+  - [x] Loading and error states handled.
+  - [x] Playwright test covers a suggestion render (mocked API).
 
 ### T5 — AI patch digest
 - **Priority:** p2 · **Area:** backend · **Depends on:** T3 · **Ralph:** no

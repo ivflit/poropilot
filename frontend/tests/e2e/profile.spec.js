@@ -36,10 +36,11 @@ test("renders champion name, icon and ranked standing", async ({ page }) => {
   await page.goto("/");
   await page.getByLabel("Riot ID").fill("Faker#KR1");
 
-  await expect(page.getByText("Aatrox")).toBeVisible();
-  await expect(page.getByRole("img", { name: "Aatrox" })).toBeVisible();
-  await expect(page.getByText(/Solo\/Duo/)).toBeVisible();
-  await expect(page.getByText(/CHALLENGER I/)).toBeVisible();
+  const profile = page.locator(".profile");
+  await expect(profile.getByText("Aatrox")).toBeVisible();
+  await expect(profile.getByRole("img", { name: "Aatrox" })).toBeVisible();
+  await expect(profile.getByText(/Solo\/Duo/)).toBeVisible();
+  await expect(profile.getByText(/CHALLENGER I/)).toBeVisible();
 });
 
 test("shows Unranked for a player with no ranked entries", async ({ page }) => {
@@ -49,5 +50,5 @@ test("shows Unranked for a player with no ranked entries", async ({ page }) => {
   await page.goto("/");
   await page.getByLabel("Riot ID").fill("New#EUW");
 
-  await expect(page.getByText("Unranked")).toBeVisible();
+  await expect(page.locator(".profile").getByText("Unranked")).toBeVisible();
 });

@@ -83,3 +83,13 @@ Do **T1 first** — it's unblocked and everything visual depends on it.
   - [ ] App runs on a DO droplet via Docker Compose behind Nginx (TLS).
   - [ ] CI deploys on merge to `main` using GitHub Actions secrets.
   - [ ] Live URL and CI badge added to the README.
+
+### T8 — Expose champion pool via API and show it in the profile
+- **Priority:** p2 · **Area:** backend + frontend · **Depends on:** T3 (done) · **Ralph:** no
+- **Why:** T3 built and tested the champion-pool analysis, but it isn't wired to
+  an endpoint or shown anywhere. Expose it and surface it in the UI.
+- **Acceptance criteria**
+  - [ ] `GET /api/pool/{region}/{name}/{tag}` returns the champion pool (top + per-champ stats).
+  - [ ] Result reuses cached match data (no extra Riot calls on repeat).
+  - [ ] Profile view shows the top champions with win-rate and form.
+  - [ ] Backend route test (stubbed client) and a Playwright test for the UI.

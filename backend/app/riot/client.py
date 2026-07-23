@@ -26,7 +26,7 @@ class RiotClient:
         self._key = api_key or settings.riot_api_key
 
     async def _get(self, host: str, path: str, ttl: int, cache_key: str):
-        cached = cache.get(cache_key)
+        cached = await cache.get(cache_key)
         if cached is not None:
             return cached
         url = f"https://{host}.api.riotgames.com{path}"
@@ -34,7 +34,7 @@ class RiotClient:
         if resp.status_code != 200:
             raise RiotAPIError(resp.status_code, resp.text)
         data = resp.json()
-        cache.set(cache_key, data, ttl=ttl)
+        await cache.set(cache_key, data, ttl=ttl)
         return data
 
     # --- Account-V1 (regional) ---

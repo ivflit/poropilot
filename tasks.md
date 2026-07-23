@@ -72,9 +72,9 @@ Do **T1 first** — it's unblocked and everything visual depends on it.
 - **Priority:** p3 · **Area:** infra · **Depends on:** — · **Ralph:** no
 - **Why:** In-memory cache doesn't survive restarts or scale past one worker.
 - **Acceptance criteria**
-  - [ ] Cache uses Redis when `REDIS_URL` is set, else in-memory.
-  - [ ] Same interface — no route changes needed.
-  - [ ] Tests cover both backends.
+  - [x] Cache uses Redis when `REDIS_URL` is set, else in-memory.
+  - [x] Same interface — no route changes needed.
+  - [x] Tests cover both backends.
 
 ### T7 — Production deploy (DigitalOcean) + CI deploy step
 - **Priority:** p2 · **Area:** infra · **Depends on:** T2, T4 · **Ralph:** no

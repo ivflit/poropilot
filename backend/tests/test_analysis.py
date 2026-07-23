@@ -1,6 +1,6 @@
 import unittest
 
-from app.riot.analysis import aggregate_champion_stats
+from app.riot.analysis import aggregate_champion_stats, top_champions
 
 PUUID = "me"
 
@@ -84,6 +84,34 @@ class AggregateChampionStatsTests(unittest.TestCase):
         ]
         order = [s.champion_id for s in aggregate_champion_stats(matches, PUUID)]
         self.assertEqual(order, [157, 238])
+
+
+class FormScoreTests(unittest.TestCase):
+    def test_proven_winrate_outranks_tiny_perfect_sample(self):
+        # A single 100% game must not beat a well-evidenced 12-of-20 (60%).
+        matches = [match(238, "Zed", True, 5, 1, 2, 100, 1200)]  # 1-1, 100%
+        matches += [match(157, "Yasuo", True, 5, 3, 5, 200, 1200) for _ in range(12)]
+        matches += [match(157, "Yasuo", False, 2, 6, 3, 160, 1200) for _ in range(8)]
+        top = top_champions(aggregate_champion_stats(matches, PUUID))
+        self.assertEqual(top[0].champion_id, 157)
+        self.assertGreater(top[0].form_score, top[1].form_score)
+
+    def test_kda_breaks_ties_between_equal_winrates(self):
+        # Two champions, identical 3-of-4 win-rate; the higher KDA ranks first.
+        carry = [match(64, "LeeSin", True, 12, 1, 8, 100, 1200) for _ in range(3)]
+        carry += [match(64, "LeeSin", False, 6, 3, 4, 100, 1200)]
+        even = [match(238, "Zed", True, 3, 3, 3, 100, 1200) for _ in range(3)]
+        even += [match(238, "Zed", False, 1, 4, 1, 100, 1200)]
+        by_id = {s.champion_id: s for s in aggregate_champion_stats(carry + even, PUUID)}
+        self.assertEqual(by_id[64].win_rate, by_id[238].win_rate)
+        self.assertGreater(by_id[64].form_score, by_id[238].form_score)
+
+    def test_no_games_has_zero_form_and_top_of_empty_is_empty(self):
+        self.assertEqual(top_champions([]), [])
+
+    def test_top_champions_respects_limit(self):
+        matches = [match(cid, str(cid), True, 5, 2, 3, 100, 1200) for cid in range(1, 6)]
+        self.assertEqual(len(top_champions(aggregate_champion_stats(matches, PUUID), limit=3)), 3)
 
 
 if __name__ == "__main__":

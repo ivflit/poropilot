@@ -53,3 +53,4 @@ class ChampionStats(BaseModel):
     win_rate: float  # 0..1
     avg_kda: float  # (kills + assists) / deaths, deaths floored at 1
     avg_cs_per_min: float
+    form_score: float  # 0..1-ish "recent form" — win confidence nudged by KDA

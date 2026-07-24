@@ -55,13 +55,13 @@ class RiotClient:
             cache_key=f"summ:{platform}:{puuid}",
         )
 
-    # --- League-V4 (platform) ---
-    async def league_entries(self, platform: str, summoner_id: str):
+    # --- League-V4 (platform) — by PUUID; Summoner-V4 no longer returns an `id` ---
+    async def league_entries(self, platform: str, puuid: str):
         return await self._get(
             platform,
-            f"/lol/league/v4/entries/by-summoner/{summoner_id}",
+            f"/lol/league/v4/entries/by-puuid/{puuid}",
             ttl=300,
-            cache_key=f"league:{platform}:{summoner_id}",
+            cache_key=f"league:{platform}:{puuid}",
         )
 
     # --- Champion-Mastery-V4 (platform) ---
@@ -101,7 +101,7 @@ async def load_profile(client: RiotClient, region_code: str, name: str, tag: str
     account = await client.account_by_riot_id(cluster, name, tag)
     puuid = account["puuid"]
     summoner = await client.summoner_by_puuid(platform, puuid)
-    entries = await client.league_entries(platform, summoner["id"])
+    entries = await client.league_entries(platform, puuid)
     masteries = await client.champion_masteries(platform, puuid)
 
     return Profile(

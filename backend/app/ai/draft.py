@@ -10,7 +10,17 @@ import anthropic
 
 from app.config import settings
 
-_client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from the environment
+_client = None
+
+
+def _get_client() -> "anthropic.Anthropic":
+    # Built lazily so the app imports fine without an ANTHROPIC_API_KEY — the
+    # AI endpoints guard on the key before ever calling this.
+    global _client
+    if _client is None:
+        _client = anthropic.Anthropic()
+    return _client
+
 
 _SYSTEM = (
     "You are a League of Legends draft coach. Given the player's role, their champion "
@@ -57,7 +67,7 @@ def suggest_pick(
         "Recommend up to 3 champions from my pool, best first."
     )
 
-    resp = _client.messages.create(
+    resp = _get_client().messages.create(
         model=settings.anthropic_model,
         max_tokens=1024,
         system=[{"type": "text", "text": _SYSTEM, "cache_control": {"type": "ephemeral"}}],

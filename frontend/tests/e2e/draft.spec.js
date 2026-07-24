@@ -15,7 +15,8 @@ test.beforeEach(async ({ page }) => {
   await page.route("**/api/champions", (route) => route.fulfill({ json: CHAMPIONS }));
 });
 
-test("suggests a pick from the draft board", async ({ page }) => {
+test("suggests a pick from the draft board when AI is enabled", async ({ page }) => {
+  await page.route("**/api/config", (route) => route.fulfill({ json: { ai_enabled: true } }));
   await page.route("**/api/draft", (route) => route.fulfill({ json: SUGGESTIONS }));
   await page.goto("/");
 
@@ -26,4 +27,11 @@ test("suggests a pick from the draft board", async ({ page }) => {
 
   await expect(page.locator(".suggestions")).toContainText("Ahri");
   await expect(page.locator(".suggestions")).toContainText("Strong pick into the enemy bans.");
+});
+
+test("hides the draft board when AI is disabled", async ({ page }) => {
+  await page.route("**/api/config", (route) => route.fulfill({ json: { ai_enabled: false } }));
+  await page.goto("/");
+
+  await expect(page.getByRole("heading", { name: "Draft assistant" })).toHaveCount(0);
 });

@@ -4,11 +4,25 @@ The Riot client wraps the process-wide httpx.AsyncClient created in the app
 lifespan, so connections are pooled across requests rather than opened per call.
 """
 
-from fastapi import Request
+from fastapi import HTTPException, Request
 
 from app.champions import ChampionService
+from app.config import settings
 from app.riot.client import RiotClient
 from app.schemas import Champion
+
+
+def ai_enabled() -> bool:
+    return bool(settings.anthropic_api_key)
+
+
+def require_ai() -> None:
+    """Guard for AI endpoints — 503 when no Anthropic key is configured."""
+    if not ai_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail="AI features are disabled: no ANTHROPIC_API_KEY configured.",
+        )
 
 
 def get_riot_client(request: Request) -> RiotClient:

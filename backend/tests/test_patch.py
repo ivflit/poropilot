@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 import app.ai.patch as patch_mod
 from app.ai.patch import patch_digest
 from app.cache import cache
+from app.config import settings
 from app.dependencies import get_ddragon_version
 from app.main import app
 
@@ -48,9 +49,12 @@ class PatchDigestRouteTests(unittest.TestCase):
         cache._store.clear()
         self.fake = FakeClient()
         patch_mod._client = self.fake
+        self._orig_key = settings.anthropic_api_key
+        settings.anthropic_api_key = "sk-test"  # so the require_ai guard passes
         app.dependency_overrides[get_ddragon_version] = lambda: "14.1.1"
 
     def tearDown(self):
+        settings.anthropic_api_key = self._orig_key
         app.dependency_overrides.clear()
 
     def test_digest_is_cached_for_the_patch(self):

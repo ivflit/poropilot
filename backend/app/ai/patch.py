@@ -11,7 +11,16 @@ import anthropic
 
 from app.config import settings
 
-_client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from the environment
+_client = None
+
+
+def _get_client() -> "anthropic.Anthropic":
+    # Built lazily so the app imports fine without an ANTHROPIC_API_KEY — the
+    # AI endpoints guard on the key before ever calling this.
+    global _client
+    if _client is None:
+        _client = anthropic.Anthropic()
+    return _client
 
 _SYSTEM = (
     "You summarise League of Legends patch notes. Given a patch version and a list of "
@@ -45,7 +54,7 @@ def patch_digest(champions: list[str], patch: str, client=None) -> dict:
 
     `client` is injectable so tests can stub the Anthropic call.
     """
-    client = client or _client
+    client = client or _get_client()
     prompt = (
         f"League of Legends patch {patch}. Summarise what changed for these "
         f"champions: {', '.join(champions)}."

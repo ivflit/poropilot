@@ -103,3 +103,15 @@ Do **T1 first** — it's unblocked and everything visual depends on it.
   - [x] SCSS build set up (`sass`), with a `src/styles/` architecture and design tokens.
   - [x] No `<style>` blocks remain in any `.vue` component.
   - [x] App still renders correctly (all Playwright tests pass).
+
+### T10 — Gracefully disable AI features when no Anthropic key
+- **Priority:** p2 · **Area:** backend + frontend · **Depends on:** — · **Ralph:** no
+- **Why:** An Anthropic key is paid; the app must run fully without it, with the
+  AI features (draft assistant, patch digest) cleanly switched off rather than
+  erroring or crashing on startup.
+- **Acceptance criteria**
+  - [x] App starts without an Anthropic key (no import-time client construction).
+  - [x] `GET /api/config` reports whether AI is enabled.
+  - [x] `/api/draft` and `/api/patch-digest` return 503 when no key is set.
+  - [x] Frontend hides the draft board when AI is disabled.
+  - [x] Tests cover the disabled backend path and the hidden UI.

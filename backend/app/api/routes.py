@@ -8,7 +8,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from app.ai.draft import suggest_pick
 from app.ai.patch import patch_digest
 from app.cache import cache
-from app.dependencies import get_champion_map, get_ddragon_version, get_riot_client
+from app.dependencies import (
+    ai_enabled,
+    get_champion_map,
+    get_ddragon_version,
+    get_riot_client,
+    require_ai,
+)
 from app.riot.client import RiotAPIError, RiotClient, load_profile
 from app.riot.matches import load_pool_for_riot_id
 from app.riot.regions import PLATFORMS, UnknownRegionError
@@ -20,6 +26,12 @@ router = APIRouter(prefix="/api", tags=["poropilot"])
 @router.get("/regions")
 def list_regions() -> dict[str, list[str]]:
     return {"regions": sorted(PLATFORMS)}
+
+
+@router.get("/config")
+def get_config() -> dict[str, bool]:
+    """Client-facing feature flags — lets the frontend hide AI features when off."""
+    return {"ai_enabled": ai_enabled()}
 
 
 @router.get("/champions")
@@ -61,7 +73,7 @@ async def get_pool(
         raise HTTPException(status_code=status, detail=str(exc)) from exc
 
 
-@router.get("/patch-digest", response_model=PatchDigest)
+@router.get("/patch-digest", response_model=PatchDigest, dependencies=[Depends(require_ai)])
 async def get_patch_digest(
     champions: Annotated[list[str], Query()],
     version: Annotated[str, Depends(get_ddragon_version)],
@@ -76,7 +88,7 @@ async def get_patch_digest(
     return PatchDigest(**result)
 
 
-@router.post("/draft", response_model=DraftResponse)
+@router.post("/draft", response_model=DraftResponse, dependencies=[Depends(require_ai)])
 def post_draft(req: DraftRequest) -> DraftResponse:
     # The Anthropic sync client is blocking; declaring this endpoint with plain
     # `def` lets FastAPI run it in its threadpool, so the event loop isn't blocked.

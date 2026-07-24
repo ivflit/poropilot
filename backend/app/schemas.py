@@ -30,6 +30,7 @@ class Suggestion(BaseModel):
     champion: str
     reason: str
     confidence: str
+    in_pool: bool = True  # whether the pick is from the player's own champion pool
 
 
 class DraftResponse(BaseModel):

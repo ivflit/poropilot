@@ -126,3 +126,14 @@ Do **T1 first** — it's unblocked and everything visual depends on it.
   - [x] Gemini backend implements the draft assistant and patch digest with structured JSON output.
   - [x] `GET /api/config` and the 503 guard recognise the Gemini key too.
   - [x] Tests cover the Gemini backend (stubbed client) and provider selection.
+
+### T12 — Draft assistant: enemy picks + out-of-pool suggestions
+- **Priority:** p2 · **Area:** backend + frontend · **Depends on:** T4 · **Ralph:** no
+- **Why:** The assistant should factor in the enemy team's picks, and still give
+  useful advice when the player's pool is empty or a poor fit — by also suggesting
+  strong picks for the role outside their pool, clearly flagged.
+- **Acceptance criteria**
+  - [x] Draft board collects enemy picks (alongside bans) and sends them to the API.
+  - [x] Suggestions include strong role picks outside the pool when the pool is weak/empty, each flagged in/out of pool.
+  - [x] UI shows whether each suggestion is from the player's pool or a meta pick.
+  - [x] Tests updated (schema + frontend).

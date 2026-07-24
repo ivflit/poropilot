@@ -7,7 +7,8 @@ const CHAMPIONS = {
 
 const SUGGESTIONS = {
   suggestions: [
-    { champion: "Ahri", reason: "Strong pick into the enemy bans.", confidence: "high" },
+    { champion: "Ahri", reason: "Strong pick into the enemy bans.", confidence: "high", in_pool: true },
+    { champion: "Syndra", reason: "Strong meta pick for this role.", confidence: "medium", in_pool: false },
   ],
 };
 
@@ -27,6 +28,8 @@ test("suggests a pick from the draft board when AI is enabled", async ({ page })
 
   await expect(page.locator(".suggestions")).toContainText("Ahri");
   await expect(page.locator(".suggestions")).toContainText("Strong pick into the enemy bans.");
+  await expect(page.locator(".suggestions")).toContainText("your pool");
+  await expect(page.locator(".suggestions")).toContainText("meta pick");
 });
 
 test("hides the draft board when AI is disabled", async ({ page }) => {

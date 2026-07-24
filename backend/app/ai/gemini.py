@@ -23,8 +23,11 @@ def _get_client():
 
 _DRAFT_INSTRUCTION = (
     "You are a League of Legends draft coach. Given the player's role, champion pool, "
-    "allied picks and enemy bans/picks, recommend the best champions to pick FROM THEIR "
-    "OWN POOL. Consider team composition, matchups and the current meta. Be concise."
+    "allied picks, enemy bans and enemy picks, recommend up to 4 champions for the role. "
+    "Prefer champions from the player's pool when they're a good fit and mark those "
+    "in_pool=true. If the pool is empty or a poor fit, also suggest strong picks for the "
+    "role that are NOT in the pool (in_pool=false). Briefly explain each pick — synergy, "
+    "matchup, and how it fares against the enemy picks. Be concise."
 )
 
 _DRAFT_SCHEMA = {
@@ -38,8 +41,9 @@ _DRAFT_SCHEMA = {
                     "champion": {"type": "string"},
                     "reason": {"type": "string"},
                     "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
+                    "in_pool": {"type": "boolean"},
                 },
-                "required": ["champion", "reason", "confidence"],
+                "required": ["champion", "reason", "confidence", "in_pool"],
             },
         }
     },
@@ -95,7 +99,8 @@ def suggest_pick(
         f"Allied picks: {', '.join(ally_picks) or '(none)'}\n"
         f"Enemy bans: {', '.join(enemy_bans) or '(none)'}\n"
         f"Enemy picks: {', '.join(enemy_picks or []) or '(none)'}\n\n"
-        "Recommend up to 3 champions from my pool, best first."
+        "Recommend up to 4 champions for this role, best first — prefer my pool, but "
+        "include strong out-of-pool options if my pool is empty or a weak fit."
     )
     return _generate(_DRAFT_INSTRUCTION, prompt, _DRAFT_SCHEMA, client=client)
 

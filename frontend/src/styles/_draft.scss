@@ -43,4 +43,22 @@
     margin-left: 0.4rem;
     font-size: 0.9rem;
   }
+
+  .tag {
+    font-size: 0.7rem;
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    margin-left: 0.4rem;
+    vertical-align: middle;
+  }
+
+  .tag-pool {
+    background: #e3f0e3;
+    color: #1f7a33;
+  }
+
+  .tag-meta {
+    background: $chip-bg;
+    color: $accent;
+  }
 }

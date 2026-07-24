@@ -7,6 +7,7 @@ export function useDraft() {
   const championPool = ref([]);
   const allyPicks = ref([]);
   const enemyBans = ref([]);
+  const enemyPicks = ref([]);
 
   const suggestions = ref(null);
   const loading = ref(false);
@@ -22,7 +23,7 @@ export function useDraft() {
         champion_pool: championPool.value,
         ally_picks: allyPicks.value,
         enemy_bans: enemyBans.value,
-        enemy_picks: [],
+        enemy_picks: enemyPicks.value,
       });
       suggestions.value = data.suggestions;
     } catch (e) {
@@ -32,5 +33,15 @@ export function useDraft() {
     }
   }
 
-  return { role, championPool, allyPicks, enemyBans, suggestions, loading, error, submit };
+  return {
+    role,
+    championPool,
+    allyPicks,
+    enemyBans,
+    enemyPicks,
+    suggestions,
+    loading,
+    error,
+    submit,
+  };
 }

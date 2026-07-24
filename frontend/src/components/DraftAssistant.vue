@@ -2,7 +2,7 @@
 import ChampionPicker from "./ChampionPicker.vue";
 import { useDraft } from "../composables/useDraft";
 
-const { role, championPool, allyPicks, enemyBans, suggestions, loading, error, submit } =
+const { role, championPool, allyPicks, enemyBans, enemyPicks, suggestions, loading, error, submit } =
   useDraft();
 
 const ROLES = ["TOP", "JUNGLE", "MID", "BOT", "SUPPORT"];
@@ -22,6 +22,7 @@ const ROLES = ["TOP", "JUNGLE", "MID", "BOT", "SUPPORT"];
     <ChampionPicker v-model="championPool" label="Your champion pool" />
     <ChampionPicker v-model="allyPicks" label="Allied picks" />
     <ChampionPicker v-model="enemyBans" label="Enemy bans" />
+    <ChampionPicker v-model="enemyPicks" label="Enemy picks" />
 
     <button type="button" class="go" :disabled="loading" @click="submit">
       {{ loading ? "Thinking…" : "Suggest a pick" }}
@@ -32,6 +33,9 @@ const ROLES = ["TOP", "JUNGLE", "MID", "BOT", "SUPPORT"];
     <ol v-if="suggestions" class="suggestions">
       <li v-for="s in suggestions" :key="s.champion">
         <strong>{{ s.champion }}</strong>
+        <span class="tag" :class="s.in_pool ? 'tag-pool' : 'tag-meta'">
+          {{ s.in_pool ? "your pool" : "meta pick" }}
+        </span>
         <span class="conf">({{ s.confidence }} confidence)</span>
         <p>{{ s.reason }}</p>
       </li>

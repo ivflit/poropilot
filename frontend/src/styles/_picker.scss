@@ -46,7 +46,8 @@
     font-size: 0.95rem;
   }
 
-  .results li button:hover {
+  .results li button:hover,
+  .results li.active button {
     background: $chip-bg;
   }
 

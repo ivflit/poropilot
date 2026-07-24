@@ -32,6 +32,19 @@ test("suggests a pick from the draft board when AI is enabled", async ({ page })
   await expect(page.locator(".suggestions")).toContainText("meta pick");
 });
 
+test("arrow keys navigate the champion search", async ({ page }) => {
+  await page.route("**/api/config", (route) => route.fulfill({ json: { ai_enabled: true } }));
+  await page.goto("/");
+
+  const pool = page.getByLabel("Your champion pool");
+  await pool.fill("a"); // matches Aatrox then Ahri
+  await pool.press("ArrowDown"); // highlight the second result (Ahri)
+  await pool.press("Enter"); // select the highlighted one
+
+  await expect(page.locator(".chip")).toContainText("Ahri");
+  await expect(page.locator(".chip")).not.toContainText("Aatrox");
+});
+
 test("hides the draft board when AI is disabled", async ({ page }) => {
   await page.route("**/api/config", (route) => route.fulfill({ json: { ai_enabled: false } }));
   await page.goto("/");

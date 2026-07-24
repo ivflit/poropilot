@@ -21,7 +21,7 @@ test("suggests a pick from the draft board when AI is enabled", async ({ page })
   await page.route("**/api/draft", (route) => route.fulfill({ json: SUGGESTIONS }));
   await page.goto("/");
 
-  await page.getByLabel("Role").selectOption("MID");
+  await page.getByRole("button", { name: "MID" }).click();
   await page.getByLabel("Your champion pool").fill("Ahri");
   await page.getByRole("button", { name: "Ahri" }).click();
   await page.getByRole("button", { name: "Suggest a pick" }).click();

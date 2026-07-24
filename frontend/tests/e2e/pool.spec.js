@@ -42,6 +42,6 @@ test("shows recent form (win-rate) for the player's top champions", async ({ pag
 
   const pool = page.locator(".pool");
   await expect(pool).toContainText("Aatrox");
-  await expect(pool).toContainText("50% WR");
-  await expect(pool).toContainText("form 0.42");
+  await expect(pool).toContainText("50%");
+  await expect(pool).toContainText("1W");
 });

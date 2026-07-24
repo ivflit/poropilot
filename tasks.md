@@ -158,3 +158,15 @@ Do **T1 first** — it's unblocked and everything visual depends on it.
   - [x] Components restyled as cards to match the mock; all existing states preserved.
   - [x] A theme toggle that persists and defaults to the system preference.
   - [x] All Playwright tests still pass.
+
+### T15 — Rebuild the UI layout to match the design mockup
+- **Priority:** p2 · **Area:** frontend · **Depends on:** T14 · **Ralph:** no
+- **Why:** T14 applied only the tokens (decoded from a bundled export); the actual
+  two-column dashboard layout was missing. Decoded the bundle + used the screenshot
+  to rebuild the real design.
+- **Acceptance criteria**
+  - [x] Two-column dashboard: search bar, profile/mastery/recent-form cards (left), draft assistant (right).
+  - [x] Profile card with gradient banner, Data Dragon avatar, rank badge + win-rate.
+  - [x] Draft assistant: segmented role control, 2×2 icon pickers, numbered suggestion cards with tags + signal bars.
+  - [x] Matches the mock's fonts, radii and colours; light + dark preserved.
+  - [x] All tests pass.

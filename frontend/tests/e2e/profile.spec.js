@@ -39,8 +39,8 @@ test("renders champion name, icon and ranked standing", async ({ page }) => {
   const profile = page.locator(".profile");
   await expect(profile.getByText("Aatrox")).toBeVisible();
   await expect(profile.getByRole("img", { name: "Aatrox" })).toBeVisible();
-  await expect(profile.getByText(/Solo\/Duo/)).toBeVisible();
-  await expect(profile.getByText(/CHALLENGER I/)).toBeVisible();
+  await expect(profile).toContainText("Solo / Duo");
+  await expect(profile).toContainText("Challenger I");
 });
 
 test("shows Unranked for a player with no ranked entries", async ({ page }) => {

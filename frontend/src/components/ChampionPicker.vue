@@ -2,11 +2,10 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useChampions } from "../composables/useChampions";
 
-// Search-as-you-type champion picker: filter by name, pick from icon results,
-// selections become removable chips. Two-way bound via v-model (array of names).
 const props = defineProps({
   modelValue: { type: Array, required: true },
   label: { type: String, required: true },
+  dot: { type: String, default: "var(--accent-strong)" },
 });
 const emit = defineEmits(["update:modelValue"]);
 
@@ -25,17 +24,14 @@ const matches = computed(() => {
   if (!q) return [];
   return allChampions.value
     .filter((c) => c.name.toLowerCase().includes(q) && !props.modelValue.includes(c.name))
-    .slice(0, 8);
+    .slice(0, 6);
 });
 
-// Reset the keyboard highlight to the top whenever the results change.
 watch(query, () => {
   activeIndex.value = 0;
 });
 
-function iconFor(name) {
-  return allChampions.value.find((c) => c.name === name)?.image_url ?? null;
-}
+const iconFor = (name) => allChampions.value.find((c) => c.name === name)?.image_url ?? null;
 
 function add(name) {
   if (name && !props.modelValue.includes(name)) {
@@ -47,7 +43,7 @@ function add(name) {
 function move(delta) {
   if (!matches.value.length) return;
   const n = matches.value.length;
-  activeIndex.value = (activeIndex.value + delta + n) % n; // wraps around
+  activeIndex.value = (activeIndex.value + delta + n) % n;
 }
 
 function select() {
@@ -65,7 +61,17 @@ function remove(name) {
 
 <template>
   <div class="picker">
-    <label class="picker-label">{{ label }}</label>
+    <div class="picker-label">
+      <span class="dot" :style="{ background: dot }"></span>{{ label }}
+    </div>
+
+    <ul v-if="modelValue.length" class="chips">
+      <li v-for="n in modelValue" :key="n" class="chip">
+        <img v-if="iconFor(n)" :src="iconFor(n)" :alt="n" />
+        {{ n }}
+        <button type="button" :aria-label="`Remove ${n}`" @click="remove(n)">×</button>
+      </li>
+    </ul>
 
     <div class="search-box">
       <input
@@ -85,19 +91,11 @@ function remove(name) {
           :class="{ active: i === activeIndex }"
         >
           <button type="button" @click="add(c.name)" @mouseenter="activeIndex = i">
-            <img :src="c.image_url" alt="" width="28" height="28" />
+            <img :src="c.image_url" alt="" />
             <span>{{ c.name }}</span>
           </button>
         </li>
       </ul>
     </div>
-
-    <ul v-if="modelValue.length" class="chips">
-      <li v-for="n in modelValue" :key="n" class="chip">
-        <img v-if="iconFor(n)" :src="iconFor(n)" alt="" width="20" height="20" />
-        {{ n }}
-        <button type="button" :aria-label="`Remove ${n}`" @click="remove(n)">×</button>
-      </li>
-    </ul>
   </div>
 </template>

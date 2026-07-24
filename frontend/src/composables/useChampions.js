@@ -33,5 +33,9 @@ export function useChampions() {
     return champions.value[championId] ?? null;
   }
 
-  return { champions, ready, load, lookup };
+  function lookupName(name) {
+    return Object.values(champions.value).find((c) => c.name === name) ?? null;
+  }
+
+  return { champions, ready, load, lookup, lookupName };
 }

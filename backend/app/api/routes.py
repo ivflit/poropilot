@@ -3,7 +3,7 @@
 import asyncio
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from app.ai.provider import ai_enabled, patch_digest, suggest_pick
 from app.cache import cache
@@ -27,9 +27,12 @@ def list_regions() -> dict[str, list[str]]:
 
 
 @router.get("/config")
-def get_config() -> dict[str, bool]:
-    """Client-facing feature flags — lets the frontend hide AI features when off."""
-    return {"ai_enabled": ai_enabled()}
+def get_config(request: Request) -> dict:
+    """Client-facing config — AI availability + the current Data Dragon version."""
+    return {
+        "ai_enabled": ai_enabled(),
+        "ddragon_version": getattr(request.app.state, "ddragon_version", None),
+    }
 
 
 @router.get("/champions")

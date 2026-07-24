@@ -5,11 +5,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from app.ai.draft import suggest_pick
-from app.ai.patch import patch_digest
+from app.ai.provider import ai_enabled, patch_digest, suggest_pick
 from app.cache import cache
 from app.dependencies import (
-    ai_enabled,
     get_champion_map,
     get_ddragon_version,
     get_riot_client,

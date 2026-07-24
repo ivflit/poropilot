@@ -115,3 +115,14 @@ Do **T1 first** — it's unblocked and everything visual depends on it.
   - [x] `/api/draft` and `/api/patch-digest` return 503 when no key is set.
   - [x] Frontend hides the draft board when AI is disabled.
   - [x] Tests cover the disabled backend path and the hidden UI.
+
+### T11 — Gemini AI backend (free-tier provider option)
+- **Priority:** p2 · **Area:** backend · **Depends on:** T10 · **Ralph:** no
+- **Why:** An Anthropic key is paid and blocked on the work org; Gemini has a free
+  tier and works when deployed. Add it as a selectable provider so the AI features
+  can run at zero cost, without dropping the Anthropic path.
+- **Acceptance criteria**
+  - [x] `AI_PROVIDER` selects the backend (`anthropic` | `gemini`); unset auto-detects from whichever key is set, else AI stays off.
+  - [x] Gemini backend implements the draft assistant and patch digest with structured JSON output.
+  - [x] `GET /api/config` and the 503 guard recognise the Gemini key too.
+  - [x] Tests cover the Gemini backend (stubbed client) and provider selection.

@@ -6,14 +6,10 @@ lifespan, so connections are pooled across requests rather than opened per call.
 
 from fastapi import HTTPException, Request
 
+from app.ai.provider import ai_enabled
 from app.champions import ChampionService
-from app.config import settings
 from app.riot.client import RiotClient
 from app.schemas import Champion
-
-
-def ai_enabled() -> bool:
-    return bool(settings.anthropic_api_key)
 
 
 def require_ai() -> None:

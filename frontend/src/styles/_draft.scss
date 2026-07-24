@@ -1,14 +1,19 @@
-@use "variables" as *;
-
 .draft {
-  margin-top: 2.5rem;
-  border-top: 1px solid $line;
-  padding-top: 1.5rem;
+  margin-top: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 1.25rem;
+
+  h2 {
+    margin-bottom: 1rem;
+  }
 
   .role {
     display: block;
     font-weight: 600;
-    margin-bottom: 0.75rem;
+    margin-bottom: 1rem;
 
     select {
       margin-left: 0.5rem;
@@ -17,11 +22,19 @@
 
   .go {
     margin-top: 0.5rem;
-    padding: 0.5rem 1rem;
+    padding: 0.6rem 1.1rem;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.95rem;
     color: #fff;
-    background: $accent;
+    background: var(--accent);
     border: none;
+    border-radius: var(--radius-sm);
     cursor: pointer;
+
+    &:hover {
+      background: var(--accent-strong);
+    }
 
     &:disabled {
       opacity: 0.6;
@@ -30,35 +43,44 @@
   }
 
   .suggestions {
-    margin-top: 1rem;
-    padding-left: 1.2rem;
+    margin-top: 1.25rem;
+    padding: 0;
+    list-style: none;
 
     li {
-      margin-bottom: 0.75rem;
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 0.7rem 0.85rem;
+      margin-bottom: 0.6rem;
+    }
+
+    strong {
+      font-family: var(--font-display);
     }
   }
 
   .conf {
-    color: $muted;
+    color: var(--muted);
     margin-left: 0.4rem;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
 
   .tag {
-    font-size: 0.7rem;
-    padding: 0.05rem 0.45rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.1rem 0.5rem;
     border-radius: 999px;
-    margin-left: 0.4rem;
+    margin-left: 0.5rem;
     vertical-align: middle;
+    background: var(--chip);
   }
 
   .tag-pool {
-    background: #e3f0e3;
-    color: #1f7a33;
+    color: var(--good);
   }
 
   .tag-meta {
-    background: $chip-bg;
-    color: $accent;
+    color: var(--accent);
   }
 }

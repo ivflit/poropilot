@@ -1,0 +1,42 @@
+// Design tokens as CSS custom properties. Light is the default (:root); dark is
+// applied when the <html> element carries data-theme="dark".
+:root {
+  --bg: #eef2f7;
+  --surface: #ffffff;
+  --surface-2: #f6f8fb;
+  --ink: #16202e;
+  --muted: #5b6674;
+  --faint: #8a95a5;
+  --line: #dbe2ea;
+  --accent: #1f4e79;
+  --accent-strong: #2f6db0;
+  --chip: #eef3f8;
+  --good: #1f9d63;
+  --gold: #c08a2e;
+  --error: #b00020;
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.06);
+  --shadow-lg: 0 2px 4px rgba(16, 24, 40, 0.04), 0 18px 40px -14px rgba(16, 24, 40, 0.22);
+
+  --radius: 14px;
+  --radius-sm: 9px;
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-body: "Manrope", system-ui, sans-serif;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0c111c;
+  --surface: #131c2c;
+  --surface-2: #0f1725;
+  --ink: #e8eef7;
+  --muted: #9aa7bb;
+  --faint: #6b7890;
+  --line: #253147;
+  --accent: #4a90d9;
+  --accent-strong: #62a3e6;
+  --chip: #1a2437;
+  --good: #45c98a;
+  --gold: #d6ab52;
+  --error: #ff6b81;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 2px 4px rgba(0, 0, 0, 0.35), 0 22px 44px -16px rgba(0, 0, 0, 0.6);
+}

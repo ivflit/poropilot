@@ -147,3 +147,14 @@ Do **T1 first** — it's unblocked and everything visual depends on it.
   - [x] Selecting a result adds a removable chip (with icon); no giant dropdown.
   - [x] Used by all four draft pickers (pool, allies, bans, enemy picks).
   - [x] Playwright test updated to the search interaction.
+
+### T14 — Apply the new visual design (light + dark themes)
+- **Priority:** p2 · **Area:** frontend · **Depends on:** T13 · **Ralph:** no
+- **Why:** Adopt the designed UI — a proper token system, Space Grotesk/Manrope
+  fonts, card surfaces, and light + dark themes.
+- **Acceptance criteria**
+  - [x] Design tokens as CSS custom properties with light (`:root`) and dark (`[data-theme="dark"]`) themes.
+  - [x] Space Grotesk (display/numbers) + Manrope (body) fonts loaded.
+  - [x] Components restyled as cards to match the mock; all existing states preserved.
+  - [x] A theme toggle that persists and defaults to the system preference.
+  - [x] All Playwright tests still pass.

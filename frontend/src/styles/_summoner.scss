@@ -1,12 +1,22 @@
-@use "variables" as *;
-
 .search {
-  input {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 1.25rem;
+
+  .row input {
     flex: 1;
   }
 
   .profile {
     margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+
+    h2 {
+      color: var(--accent);
+    }
   }
 
   .ranked,
@@ -14,16 +24,26 @@
   .pool {
     list-style: none;
     padding: 0;
+    margin: 0;
+  }
+
+  .ranked li {
+    padding: 0.15rem 0;
   }
 
   .champ {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.25rem 0;
+    gap: 0.6rem;
+    padding: 0.4rem 0.5rem;
+    border-radius: var(--radius-sm);
+
+    &:hover {
+      background: var(--surface-2);
+    }
 
     img {
-      border-radius: 4px;
+      border-radius: 8px;
     }
 
     .name {
@@ -31,8 +51,10 @@
     }
 
     .pts {
-      color: $muted;
       margin-left: auto;
+      color: var(--muted);
+      font-family: var(--font-display);
+      font-size: 0.85rem;
     }
   }
 }

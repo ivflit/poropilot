@@ -22,8 +22,19 @@ The engineering is done; the steps below are the account-specific bits only you 
 ```bash
 git clone https://github.com/ivflit/poropilot.git
 cd poropilot
-cp backend/.env.example backend/.env    # then edit: add RIOT_API_KEY + ANTHROPIC_API_KEY
+cp backend/.env.example backend/.env    # then edit the keys (see below)
 ```
+
+**Keys to set in `backend/.env`:**
+- `RIOT_API_KEY` — **required** (profile, champ pool, win-rates). A *personal* Riot
+  key (from developer.riotgames.com → Register Product) doesn't expire, unlike the
+  24h dev key — use that for a live site.
+- **AI features are optional.** Leave the AI keys blank and the draft assistant +
+  patch digest simply switch off. To enable them live, pick one:
+  - **Gemini (free):** set `GEMINI_API_KEY` from https://aistudio.google.com. This is
+    the recommended option for a deployed site — free tier, hosted, no billing.
+    `AI_PROVIDER` auto-detects it.
+  - **Anthropic (paid):** set `ANTHROPIC_API_KEY` from console.anthropic.com instead.
 
 ## 3. Set your domain
 

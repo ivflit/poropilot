@@ -137,3 +137,13 @@ Do **T1 first** — it's unblocked and everything visual depends on it.
   - [x] Suggestions include strong role picks outside the pool when the pool is weak/empty, each flagged in/out of pool.
   - [x] UI shows whether each suggestion is from the player's pool or a meta pick.
   - [x] Tests updated (schema + frontend).
+
+### T13 — Searchable champion picker with icons
+- **Priority:** p2 · **Area:** frontend · **Depends on:** T4 · **Ralph:** no
+- **Why:** Selecting from a 170-item `<select>` is poor UX. Replace it with a
+  search-as-you-type control that shows champion icons in the results (loldle-style).
+- **Acceptance criteria**
+  - [x] Typing filters champions; results show the champion icon + name.
+  - [x] Selecting a result adds a removable chip (with icon); no giant dropdown.
+  - [x] Used by all four draft pickers (pool, allies, bans, enemy picks).
+  - [x] Playwright test updated to the search interaction.

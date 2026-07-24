@@ -22,8 +22,8 @@ test("suggests a pick from the draft board when AI is enabled", async ({ page })
   await page.goto("/");
 
   await page.getByLabel("Role").selectOption("MID");
-  await page.getByLabel("Your champion pool").selectOption("Ahri");
-  await page.getByRole("button", { name: "Add" }).first().click();
+  await page.getByLabel("Your champion pool").fill("Ahri");
+  await page.getByRole("button", { name: "Ahri" }).click();
   await page.getByRole("button", { name: "Suggest a pick" }).click();
 
   await expect(page.locator(".suggestions")).toContainText("Ahri");

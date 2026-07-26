@@ -46,6 +46,17 @@ parts. A task opts in by setting **`Ralph: yes`** in `tasks.md` and carrying the
 The loop reads the task, implements the next unchecked criterion, runs the tests,
 ticks the box only if they pass, and commits — repeating until done.
 
+## Git workflow
+
+- **Issue first.** Every change starts as a GitHub issue — it gets a number.
+- **Branch `feature/<issue-number>-<short-name>`** (e.g. `feature/17-project-docs`). The
+  issue number is required in the branch name.
+- **Open a PR; merge to `main` only once CI passes.** `main` is branch-protected — the
+  `backend` and `frontend` checks must be green. Squash-merge and delete the branch.
+- Never commit directly to `main`.
+- After merging a frontend change, refresh the running app:
+  `docker compose up -d --build --force-recreate frontend`.
+
 ## Conventions
 
 **Commits** — short, present-tense, plain UK English, as a person would write

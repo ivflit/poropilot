@@ -1,0 +1,57 @@
+# Render blueprint — the free-tier backend deploy.
+#
+# In Render: New → Blueprint → point it at this repo. Render reads this file, creates
+# the service, and redeploys on every push to main. Then set the secret env vars
+# (marked sync:false below) in the dashboard, and CORS_ORIGINS to your Netlify URL.
+#
+# Free-tier caveat: the instance sleeps after ~15 minutes idle, so the first request
+# after a nap takes ~30–60s to wake it. The frontend's loading states cover this.
+services:
+  - type: web
+    name: poropilot-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      # Set in the Render dashboard — never commit keys.
+      - key: RIOT_API_KEY
+        sync: false
+
+      # Comma-separated list of the frontend origins allowed to call this API.
+      # e.g. https://poropilot.netlify.app,https://poropilot.app
+      - key: CORS_ORIGINS
+        sync: false
+
+      # Optional: lets Netlify deploy previews (a fresh subdomain each time) through.
+      # e.g. https://.*--poropilot\.netlify\.app
+      - key: CORS_ORIGIN_REGEX
+        sync: false
+
+      # Optional AI features — leave unset and the draft assistant and patch digest
+      # switch off cleanly. Gemini has a free tier, so it suits a free deploy.
+      - key: AI_PROVIDER
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+
+      # Render's managed Key Value store (Redis-compatible) — see below.
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: poropilot-cache
+          property: connectionString
+
+# Free 25 MB Redis-compatible cache. Data is evicted rather than persisted, which is
+# exactly what we want: everything we store is a re-fetchable Riot/Data Dragon response.
+keyValue:
+  - name: poropilot-cache
+    plan: free
+    region: frankfurt
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []          # empty = reachable only from inside Render's network

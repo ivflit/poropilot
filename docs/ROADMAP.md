@@ -7,29 +7,35 @@ size, and dependencies. Roughly ordered by impact-per-effort. Follow the usual f
 
 ## Tier 1 — highest impact
 
-### R1 · Ship it live (finish T7) + a real CI/CD pipeline
+### R1 · Ship it live (finish T7) + a real CI/CD pipeline — *in progress as T16*
 - **Shows:** DevOps, Docker, CI/CD, cloud. **Size:** M.
 - A live URL is the single biggest signal on a CV. Deploy the frontend to a free static
   host and the backend to a free service (see below), wire auto-deploy on merge to `main`,
   add the live link + CI badge to the README. Bonus: a `staging` environment + GitHub
   Environments with required reviewers.
+- **Done:** env-driven CORS, `render.yaml`, `netlify.toml`, both runbooks
+  (`deploy/README.md`). **Left:** connect the accounts and paste the live URL in.
 
 ### R2 · Live game tracker (Spectator-V4)
 - **Shows:** real-time data, API depth, product sense. **Size:** M.
 - If the summoner is in a live game, show it, with both teams' champions — and let the
   draft assistant **auto-fill from the live game**. High wow-factor and unique.
 
-### R3 · Match history detail
+### R3 · Match history detail — *scoped as T19 + T20*
 - **Shows:** data-rich UI, data modelling. **Size:** M.
 - A list of recent matches with per-game KDA, items, CS, and a win/loss timeline. Turns
-  the "recent form" numbers into a proper, clickable history.
+  the "recent form" numbers into a proper, clickable history. **T19** adds the queue
+  filter (all / ranked solo-duo / flex) so the stats mean something, and **T20** layers
+  an AI post-game review on top — "here's what went wrong and what to do next game."
 
 ## Tier 2 — strong depth signals
 
-### R4 · Accounts + saved summoners/pools
+### R4 · Accounts + saved summoners/pools — *scoped as T17 + T18*
 - **Shows:** auth, persistence, security. **Size:** M–L.
-- Sign in (OAuth or JWT), favourite summoners, save your champion pool so the draft
-  assistant remembers it. Introduces a real DB (Postgres) and auth flows.
+- Sign in (JWT), favourite summoners, save your champion pool so the draft assistant
+  remembers it. Introduces a real DB (Postgres) and auth flows. **T17** is the auth and
+  database groundwork; **T18** saves a pool **per role** (most players main two roles)
+  and loads it straight into the draft assistant.
 
 ### R5 · Rate-limit resilience + performance
 - **Shows:** backend rigour, systems thinking. **Size:** M.

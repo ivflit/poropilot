@@ -86,6 +86,13 @@ cd frontend && npx playwright test        # e2e (stop the docker frontend first 
   **by PUUID** (`/lol/league/v4/entries/by-puuid/{puuid}`), not by summoner id.
 - **An unhandled 500 has no CORS header**, so the browser shows it as "Failed to fetch"
   — a real backend error can masquerade as a CORS/network error. Check the backend logs.
+- **`CORS_ORIGINS` is a `list[str]`, and pydantic-settings parses those from the
+  environment as *JSON*.** A plain `CORS_ORIGINS=https://foo.app` used to crash the app
+  at startup; `config.py` now has a `before` validator that also accepts a
+  comma-separated string (and strips trailing slashes, which never match the browser's
+  `Origin` header).
+- **`VITE_API_BASE` is inlined at build time**, not read at runtime — changing it on the
+  host needs a *rebuild*, not a restart. It's public: never put a secret in a `VITE_` var.
 - **`google-genai` needs a native build** that some local machines lack; CI (Linux) is the
   source of truth for the Gemini-dependent tests.
 - **AI clients are built lazily** (never at import) so the app starts with no key.
@@ -93,5 +100,14 @@ cd frontend && npx playwright test        # e2e (stop the docker frontend first 
 ## 9. Status
 
 T1–T6, T8–T15 done (profile, champ pool via Ralph, draft assistant, AI patch digest,
-Gemini backend, searchable icon pickers, two-column themed UI, etc.). **T7 (production
-deploy) is the main open task.** Full backlog: `../tasks.md`.
+Gemini backend, searchable icon pickers, two-column themed UI, etc.).
+
+**Deploy (T16, roadmap R1)** — the repo now ships two paths: free (Netlify frontend +
+Render backend, `netlify.toml` + `render.yaml`) and the DigitalOcean droplet (T7,
+`deploy/`). Both are code-complete; only the account setup and pasting the live URL into
+the README are left. Runbook: `../deploy/README.md`.
+
+**Next up — the accounts arc:** T17 (sign up / log in, first Postgres in the project,
+Ralph) → T18 (champion pools saved **per role**, loaded into the draft assistant) and
+T19 (filter matches by queue: all / ranked solo-duo / flex) → T20 (AI post-game review
+of recent ranked games). Full backlog: `../tasks.md`.

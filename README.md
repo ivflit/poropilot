@@ -62,9 +62,13 @@ patch summaries. See `PROJECT.md` (the build plan) for detail.
 
 ## Deployment
 
-Production runs on a single DigitalOcean droplet via Docker Compose behind Nginx
-(TLS), with a GitHub Actions deploy on every push to `main`. Full runbook:
-[`deploy/README.md`](deploy/README.md).
+Two supported paths, both documented in [`deploy/README.md`](deploy/README.md):
+
+- **Free (recommended for the demo)** — frontend on **Netlify** (`netlify.toml`),
+  backend + Redis on **Render**'s free tier (`render.yaml`). Both auto-deploy on push
+  to `main`; no server, domain or TLS setup needed.
+- **Own the box** — a single DigitalOcean droplet running Docker Compose behind Nginx
+  (TLS), deployed over SSH by GitHub Actions on every push to `main`.
 
 ## ⚠️ Never commit your API keys — they live in `backend/.env` (gitignored).
 

@@ -9,19 +9,36 @@ from app.ai import draft, gemini
 from app.ai import patch as anthropic_patch
 from app.config import settings
 
+ANTHROPIC = "anthropic"
+GEMINI = "gemini"
+
+
+def _provider_key(provider: str) -> str:
+    """The configured API key for a provider name ("" when there isn't one)."""
+    if provider == ANTHROPIC:
+        return settings.anthropic_api_key
+    if provider == GEMINI:
+        return settings.gemini_api_key
+    return ""
+
 
 def active_provider() -> str | None:
     """The AI provider in use, or None if AI is off.
 
     Explicit AI_PROVIDER wins; otherwise auto-detect from whichever key is set
-    (Anthropic preferred). None means no key configured → AI disabled.
+    (Anthropic preferred). None means AI is disabled.
+
+    A provider is only "active" if its key is actually set. Naming a provider
+    without its key used to report AI as enabled, so the UI showed the draft
+    board and the endpoints failed mid-call instead of returning a clean 503.
     """
-    if settings.ai_provider:
-        return settings.ai_provider
+    explicit = settings.ai_provider.strip().lower()
+    if explicit:
+        return explicit if _provider_key(explicit) else None
     if settings.anthropic_api_key:
-        return "anthropic"
+        return ANTHROPIC
     if settings.gemini_api_key:
-        return "gemini"
+        return GEMINI
     return None
 
 

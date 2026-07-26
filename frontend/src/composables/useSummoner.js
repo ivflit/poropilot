@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { apiGet } from "../services/api";
 
 // Encapsulates summoner-search state + the debounce/cache logic so the
@@ -6,12 +6,16 @@ import { apiGet } from "../services/api";
 export function useSummoner() {
   const region = ref("EUW");
   const riotId = ref(""); // "name#tag"
+  const queue = ref("all"); // "all" | "solo" | "flex"
   const profile = ref(null);
   const pool = ref(null);
   const error = ref("");
   const loading = ref(false);
+  const poolLoading = ref(false);
 
-  const cache = new Map(); // protects the rate-limited Riot API from repeats
+  const profileCache = new Map(); // protects the rate-limited Riot API from repeats
+  const poolCache = new Map(); // keyed by queue too — filters mustn't share numbers
+  let searched = null; // the {name, tag, region} currently on screen
   let debounceTimer = null;
 
   function onInput() {
@@ -23,6 +27,7 @@ export function useSummoner() {
     error.value = "";
     profile.value = null;
     pool.value = null;
+    searched = null;
 
     const raw = riotId.value.trim();
     if (!raw.includes("#")) {
@@ -33,13 +38,13 @@ export function useSummoner() {
     const [name, tag] = raw.split("#");
     const key = `${region.value}:${name}#${tag}`;
 
-    if (cache.has(key)) {
-      profile.value = cache.get(key);
+    if (profileCache.has(key)) {
+      profile.value = profileCache.get(key);
     } else {
       loading.value = true;
       try {
         profile.value = await apiGet(summonerPath(name, tag));
-        cache.set(key, profile.value);
+        profileCache.set(key, profile.value);
       } catch (e) {
         error.value = e.message;
       } finally {
@@ -47,20 +52,46 @@ export function useSummoner() {
       }
     }
 
-    // The champion pool is best-effort — a failure here must not hide the profile.
-    if (profile.value) {
-      try {
-        pool.value = await apiGet(poolPath(name, tag));
-      } catch {
-        pool.value = null;
-      }
+    if (!profile.value) return;
+    searched = { name, tag, region: region.value };
+    await loadPool();
+  }
+
+  // The champion pool is best-effort — a failure here must not hide the profile.
+  async function loadPool() {
+    if (!searched) return;
+
+    const { name, tag, region: searchedRegion } = searched;
+    const key = `${searchedRegion}:${name}#${tag}:${queue.value}`;
+    if (poolCache.has(key)) {
+      pool.value = poolCache.get(key);
+      return;
+    }
+
+    poolLoading.value = true;
+    try {
+      const result = await apiGet(poolPath(name, tag, searchedRegion));
+      poolCache.set(key, result);
+      pool.value = result;
+    } catch {
+      pool.value = null;
+    } finally {
+      poolLoading.value = false;
     }
   }
 
+  // Switching the filter re-reads the pool but leaves the profile on screen —
+  // only the queue-dependent numbers change.
+  watch(queue, () => {
+    pool.value = null;
+    loadPool();
+  });
+
   const summonerPath = (name, tag) =>
     `/api/summoner/${region.value}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`;
-  const poolPath = (name, tag) =>
-    `/api/pool/${region.value}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`;
+  const poolPath = (name, tag, searchedRegion) =>
+    `/api/pool/${searchedRegion}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}` +
+    `?queue=${queue.value}`;
 
-  return { region, riotId, profile, pool, error, loading, onInput, search };
+  return { region, riotId, queue, profile, pool, error, loading, poolLoading, onInput, search };
 }

@@ -48,6 +48,9 @@ Vue 3 SPA (Vite)  ──HTTP──▶  FastAPI (async)  ──▶  Riot API + Da
   Summoner-V4 (level/icon) → **League-V4 by-PUUID** (rank) → Champion-Mastery-V4.
 - **Champion pool** `analyse_champion_pool` → Match-V5 (paged ids + concurrent detail
   under a semaphore) → per-champion aggregation → top champions by form score.
+  A **queue filter** (`?queue=all|solo|flex`, `riot/queues.py`) narrows it to a ranked
+  queue — passed to Riot's ids endpoint so a filtered search returns N *solo* games, and
+  re-checked against `info.queueId` on the way back.
 - **Draft** `POST /api/draft` and **patch digest** `GET /api/patch-digest` → the active
   AI provider, returning structured JSON.
 - **Champions** `GET /api/champions` (id→name/icon map) and **config** `GET /api/config`
@@ -93,8 +96,14 @@ cd frontend && npx playwright test        # e2e (stop the docker frontend first 
   `Origin` header).
 - **`VITE_API_BASE` is inlined at build time**, not read at runtime — changing it on the
   host needs a *rebuild*, not a restart. It's public: never put a secret in a `VITE_` var.
-- **`google-genai` needs a native build** that some local machines lack; CI (Linux) is the
-  source of truth for the Gemini-dependent tests.
+- **`google-genai` pulls in `cryptography`, which tries to build from source** (needs Rust)
+  on some local machines. Install with `pip install --only-binary :all: google-genai` to
+  force the prebuilt wheel. Without it, *every* test module that imports `app.dependencies`
+  fails to import, which looks far worse than it is.
+- **Tests that assert "AI is disabled" must clear every AI setting**, not just
+  `anthropic_api_key`. CI has no `.env`, so a test that clears one key passes there and
+  fails locally for anyone with real keys — and the endpoints make *live billable calls*
+  instead of returning 503. See `AI_SETTINGS` in `tests/test_features.py`.
 - **AI clients are built lazily** (never at import) so the app starts with no key.
 
 ## 9. Status
@@ -107,7 +116,10 @@ Render backend, `netlify.toml` + `render.yaml`) and the DigitalOcean droplet (T7
 `deploy/`). Both are code-complete; only the account setup and pasting the live URL into
 the README are left. Runbook: `../deploy/README.md`.
 
+**T19 (queue filter) is done** — profile, recent form and champion pool can be narrowed
+to ranked solo/duo or flex, so ARAM and normals no longer pollute the ranked numbers.
+
 **Next up — the accounts arc:** T17 (sign up / log in, first Postgres in the project,
-Ralph) → T18 (champion pools saved **per role**, loaded into the draft assistant) and
-T19 (filter matches by queue: all / ranked solo-duo / flex) → T20 (AI post-game review
-of recent ranked games). Full backlog: `../tasks.md`.
+Ralph) → T18 (champion pools saved **per role**, loaded into the draft assistant) →
+T20 (AI post-game review of recent ranked games, builds on T19). Full backlog:
+`../tasks.md`.

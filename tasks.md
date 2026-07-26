@@ -260,15 +260,15 @@ in the project, so do it first and do it properly.
     **450** ARAM. Match-V5's match-ids endpoint takes a `queue` parameter, so filter at
     the source where we can and by `info.queueId` on cached matches otherwise.
 - **Acceptance criteria**
-  - [ ] `GET /api/pool/...` and the match endpoints accept a `queue` filter
+  - [x] `GET /api/pool/...` and the match endpoints accept a `queue` filter
         (`all` | `solo` | `flex`), validated by an enum — a bad value gives 422.
-  - [ ] Aggregate stats (games, win-rate, KDA, CS/min, form) recompute per filter.
-  - [ ] Cache keys include the filter, so switching filters doesn't serve stale numbers
+  - [x] Aggregate stats (games, win-rate, KDA, CS/min, form) recompute per filter.
+  - [x] Cache keys include the filter, so switching filters doesn't serve stale numbers
         or trigger a re-fetch of matches we already hold.
-  - [ ] A segmented control in the UI switches the filter and updates profile, recent
+  - [x] A segmented control in the UI switches the filter and updates profile, recent
         form and champion pool together.
-  - [ ] Empty state when the player has no games in the selected queue.
-  - [ ] Tests: fixture-based aggregation asserts each filter over a mixed match set;
+  - [x] Empty state when the player has no games in the selected queue.
+  - [x] Tests: fixture-based aggregation asserts each filter over a mixed match set;
         Playwright covers switching the filter.
 
 ### T20 — AI post-game review of recent ranked games

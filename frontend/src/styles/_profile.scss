@@ -13,6 +13,15 @@
   padding: 40px 20px;
 }
 
+// Stands in for the recent-form list while it loads, fails, or has no games in
+// the selected queue.
+.pool-note {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 2px;
+}
+
 .pcard {
   background: var(--surface);
   border: 1px solid var(--line);

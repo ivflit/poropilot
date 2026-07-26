@@ -15,6 +15,7 @@ import logging
 
 from app.riot.analysis import aggregate_champion_stats, top_champions
 from app.riot.client import RiotAPIError, RiotClient
+from app.riot.queues import MatchQueue, filter_by_queue, queue_id
 from app.riot.regions import platform_host, regional_route
 from app.schemas import ChampionPool
 
@@ -24,11 +25,23 @@ RIOT_MAX_IDS_PER_PAGE = 100
 MAX_CONCURRENT_MATCH_REQUESTS = 10  # cap in-flight match fetches under the ~20 req/s dev limit
 
 
-async def recent_match_ids(client: RiotClient, cluster: str, puuid: str, count: int) -> list[str]:
-    """The most recent `count` match ids for a PUUID, paged in batches of 100."""
+async def recent_match_ids(
+    client: RiotClient,
+    cluster: str,
+    puuid: str,
+    count: int,
+    queue: MatchQueue = MatchQueue.ALL,
+) -> list[str]:
+    """The most recent `count` match ids for a PUUID, paged in batches of 100.
+
+    A queue filter is passed to Riot rather than applied afterwards, so a
+    solo-only request returns `count` solo games instead of `count` games of
+    which a few happen to be solo.
+    """
     if count <= 0:
         return []
 
+    riot_queue = queue_id(queue)
     ids: list[str] = []
     start = 0
     while len(ids) < count:
@@ -37,6 +50,7 @@ async def recent_match_ids(client: RiotClient, cluster: str, puuid: str, count: 
             puuid,
             start=start,
             count=min(RIOT_MAX_IDS_PER_PAGE, count - len(ids)),
+            queue=riot_queue,
         )
         if not page:
             break
@@ -46,7 +60,11 @@ async def recent_match_ids(client: RiotClient, cluster: str, puuid: str, count: 
 
 
 async def fetch_recent_matches(
-    client: RiotClient, region_code: str, puuid: str, count: int = 20
+    client: RiotClient,
+    region_code: str,
+    puuid: str,
+    count: int = 20,
+    queue: MatchQueue = MatchQueue.ALL,
 ) -> list[dict]:
     """Fetch full match detail for the PUUID's last `count` games.
 
@@ -63,7 +81,7 @@ async def fetch_recent_matches(
     platform = platform_host(region_code)
     cluster = regional_route(platform)
 
-    ids = await recent_match_ids(client, cluster, puuid, count)
+    ids = await recent_match_ids(client, cluster, puuid, count, queue=queue)
     semaphore = asyncio.Semaphore(MAX_CONCURRENT_MATCH_REQUESTS)
 
     async def fetch_one(match_id: str) -> dict | None:
@@ -75,20 +93,29 @@ async def fetch_recent_matches(
                 return None
 
     results = await asyncio.gather(*(fetch_one(match_id) for match_id in ids))
-    return [match for match in results if match is not None]
+    # Riot already narrowed the ids by queue; re-checking `queueId` costs nothing
+    # and keeps a stray match out of the aggregation.
+    return filter_by_queue((match for match in results if match is not None), queue)
 
 
 async def analyse_champion_pool(
-    client: RiotClient, region_code: str, puuid: str, count: int = 20, top: int = 5
+    client: RiotClient,
+    region_code: str,
+    puuid: str,
+    count: int = 20,
+    top: int = 5,
+    queue: MatchQueue = MatchQueue.ALL,
 ) -> ChampionPool:
     """Fold a PUUID's recent matches into a champion-pool summary.
 
     Safe for players with few or no ranked games: an empty history yields an
-    empty pool (no games, no champions) rather than an error.
+    empty pool (no games, no champions) rather than an error — which is the
+    normal case for a filter the player has never queued for.
     """
-    matches = await fetch_recent_matches(client, region_code, puuid, count)
+    matches = await fetch_recent_matches(client, region_code, puuid, count, queue=queue)
     stats = aggregate_champion_stats(matches, puuid)
     return ChampionPool(
+        queue=queue,
         total_games=sum(s.games for s in stats),
         champions=stats,
         top=top_champions(stats, limit=top),
@@ -96,7 +123,13 @@ async def analyse_champion_pool(
 
 
 async def load_pool_for_riot_id(
-    client: RiotClient, region_code: str, name: str, tag: str, count: int = 20, top: int = 5
+    client: RiotClient,
+    region_code: str,
+    name: str,
+    tag: str,
+    count: int = 20,
+    top: int = 5,
+    queue: MatchQueue = MatchQueue.ALL,
 ) -> ChampionPool:
     """Resolve a Riot ID to a PUUID, then summarise its recent champion pool.
 
@@ -105,4 +138,6 @@ async def load_pool_for_riot_id(
     """
     cluster = regional_route(platform_host(region_code))
     account = await client.account_by_riot_id(cluster, name, tag)
-    return await analyse_champion_pool(client, region_code, account["puuid"], count=count, top=top)
+    return await analyse_champion_pool(
+        client, region_code, account["puuid"], count=count, top=top, queue=queue
+    )

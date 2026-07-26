@@ -15,6 +15,7 @@ from app.dependencies import (
 )
 from app.riot.client import RiotAPIError, RiotClient, load_profile
 from app.riot.matches import load_pool_for_riot_id
+from app.riot.queues import MatchQueue
 from app.riot.regions import PLATFORMS, UnknownRegionError
 from app.schemas import Champion, ChampionPool, DraftRequest, DraftResponse, PatchDigest, Profile
 
@@ -64,9 +65,10 @@ async def get_pool(
     name: str,
     tag: str,
     client: Annotated[RiotClient, Depends(get_riot_client)],
+    queue: Annotated[MatchQueue, Query(description="Filter matches by queue")] = MatchQueue.ALL,
 ) -> ChampionPool:
     try:
-        return await load_pool_for_riot_id(client, region, name, tag)
+        return await load_pool_for_riot_id(client, region, name, tag, queue=queue)
     except UnknownRegionError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except RiotAPIError as exc:

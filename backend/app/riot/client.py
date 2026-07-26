@@ -74,15 +74,24 @@ class RiotClient:
         )
 
     # --- Match-V5 (regional) ---
-    async def match_ids(self, region_cluster: str, puuid: str, start: int = 0, count: int = 20):
+    async def match_ids(
+        self,
+        region_cluster: str,
+        puuid: str,
+        start: int = 0,
+        count: int = 20,
+        queue: int | None = None,
+    ):
         # Riot caps a single /ids request at 100; callers page via `start`.
         count = min(count, 100)
-        return await self._get(
-            region_cluster,
-            f"/lol/match/v5/matches/by-puuid/{puuid}/ids?start={start}&count={count}",
-            ttl=120,
-            cache_key=f"matchids:{region_cluster}:{puuid}:{start}:{count}",
-        )
+        path = f"/lol/match/v5/matches/by-puuid/{puuid}/ids?start={start}&count={count}"
+        # The queue is part of the cache key as well as the query — otherwise a
+        # solo-only page would be served from an unfiltered request's cache entry.
+        key = f"matchids:{region_cluster}:{puuid}:{start}:{count}"
+        if queue is not None:
+            path += f"&queue={queue}"
+            key += f":q{queue}"
+        return await self._get(region_cluster, path, ttl=120, cache_key=key)
 
     async def match(self, region_cluster: str, match_id: str):
         return await self._get(

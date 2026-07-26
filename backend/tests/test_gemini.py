@@ -55,8 +55,23 @@ class ProviderSelectionTests(unittest.TestCase):
         self.assertEqual(active_provider(), "gemini")
 
     def test_explicit_provider_overrides_detection(self):
-        self._set(provider="gemini", anthropic="sk-test")
+        self._set(provider="gemini", anthropic="sk-test", gemini="g-test")
         self.assertEqual(active_provider(), "gemini")
+
+    def test_explicit_provider_without_its_key_disables_ai(self):
+        # Naming a provider you have no key for used to report AI as enabled, so
+        # the UI offered the draft board and the call failed mid-request. Off is
+        # the honest answer — and it's what the 503 guard relies on.
+        self._set(provider="gemini", anthropic="sk-test")
+        self.assertIsNone(active_provider())
+
+    def test_explicit_provider_ignores_case_and_stray_whitespace(self):
+        self._set(provider=" Gemini ", gemini="g-test")
+        self.assertEqual(active_provider(), "gemini")
+
+    def test_an_unknown_provider_name_disables_ai(self):
+        self._set(provider="openai", anthropic="sk-test")
+        self.assertIsNone(active_provider())
 
 
 if __name__ == "__main__":

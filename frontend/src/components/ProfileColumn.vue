@@ -6,6 +6,8 @@ const props = defineProps({
   profile: { type: Object, default: null },
   pool: { type: Object, default: null },
   loading: { type: Boolean, default: false },
+  poolLoading: { type: Boolean, default: false },
+  queue: { type: String, default: "all" },
   version: { type: String, default: null },
 });
 
@@ -18,15 +20,28 @@ const TIER_SHORT = {
 };
 const RANK_NUM = { I: "1", II: "2", III: "3", IV: "4" };
 
-const soloRank = computed(() => {
+// The rank badge follows the queue filter: asking for flex and being shown your
+// solo rank would be its own kind of lie. "All" keeps solo as the headline rank.
+const QUEUE_TYPES = { solo: "RANKED_SOLO_5x5", flex: "RANKED_FLEX_SR" };
+const QUEUE_LABELS = { RANKED_SOLO_5x5: "Solo / Duo", RANKED_FLEX_SR: "Flex 5v5" };
+const QUEUE_NAMES = { all: "all queues", solo: "ranked solo/duo", flex: "ranked flex" };
+
+const rankedEntry = computed(() => {
   const entries = props.profile?.ranked ?? [];
-  return entries.find((e) => e.queueType === "RANKED_SOLO_5x5") ?? entries[0] ?? null;
+  const wanted = QUEUE_TYPES[props.queue] ?? "RANKED_SOLO_5x5";
+  const match = entries.find((e) => e.queueType === wanted);
+  if (match) return match;
+  // A filtered view shows nothing rather than another queue's rank; unfiltered
+  // falls back to whatever ranked data exists.
+  return props.queue === "all" ? (entries[0] ?? null) : null;
 });
+
+const queueName = computed(() => QUEUE_NAMES[props.queue] ?? props.queue);
 
 const titleCase = (s) => (s ? s[0] + s.slice(1).toLowerCase() : s);
 
 const rank = computed(() => {
-  const e = soloRank.value;
+  const e = rankedEntry.value;
   if (!e) return null;
   const games = (e.wins ?? 0) + (e.losses ?? 0);
   return {
@@ -34,6 +49,7 @@ const rank = computed(() => {
     full: `${titleCase(e.tier)} ${e.rank} — ${e.leaguePoints} LP`,
     winPct: games ? Math.round((e.wins / games) * 100) : 0,
     wl: `${e.wins}W / ${e.losses}L`,
+    queueLabel: QUEUE_LABELS[e.queueType] ?? "Ranked",
   };
 });
 
@@ -69,7 +85,7 @@ const barColor = (p) => (p >= 50 ? "var(--good)" : "var(--gold)");
           <div v-if="rank" class="rank-row">
             <div class="rank-badge">{{ rank.short }}</div>
             <div class="rank-meta">
-              <div class="rank-queue">Solo / Duo</div>
+              <div class="rank-queue">{{ rank.queueLabel }}</div>
               <div class="rank-full">{{ rank.full }}</div>
             </div>
             <div class="rank-right">
@@ -79,7 +95,7 @@ const barColor = (p) => (p >= 50 ? "var(--good)" : "var(--gold)");
               <div class="wl">{{ rank.wl }}</div>
             </div>
           </div>
-          <div v-else class="rank-row rank-unranked">Unranked</div>
+          <div v-else class="rank-row rank-unranked">Unranked in {{ queueName }}</div>
         </div>
       </div>
 
@@ -100,9 +116,19 @@ const barColor = (p) => (p >= 50 ? "var(--good)" : "var(--gold)");
         </div>
       </div>
 
-      <div v-if="pool && pool.top.length" class="card">
-        <h3 class="mb">Recent form</h3>
-        <ul class="pool">
+      <div class="card">
+        <div class="card-head">
+          <h3>Recent form</h3>
+          <span class="card-sub">{{ queueName }}</span>
+        </div>
+
+        <p v-if="poolLoading" class="pool-note">Loading recent games…</p>
+        <p v-else-if="!pool" class="pool-note">Recent form is unavailable right now.</p>
+        <p v-else-if="!pool.top.length" class="pool-note">
+          No games in {{ queueName }} — try another filter.
+        </p>
+
+        <ul v-else class="pool">
           <li v-for="c in pool.top" :key="c.champion_id" class="f-row">
             <img class="f-icon" :src="championIcon(c.champion_id)" :alt="c.champion_name" />
             <div class="f-main">

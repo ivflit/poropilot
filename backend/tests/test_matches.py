@@ -11,6 +11,7 @@ from app.riot.matches import (
     fetch_recent_matches,
     recent_match_ids,
 )
+from app.riot.queues import MatchQueue
 
 
 class FakePagingClient:
@@ -19,10 +20,12 @@ class FakePagingClient:
     def __init__(self, total: int) -> None:
         self.all_ids = [f"M{i}" for i in range(total)]
         self.pages: list[tuple[int, int]] = []
+        self.queues: list[int | None] = []
         self.fetched: list[str] = []
 
-    async def match_ids(self, cluster, puuid, start=0, count=20):
+    async def match_ids(self, cluster, puuid, start=0, count=20, queue=None):
         self.pages.append((start, count))
+        self.queues.append(queue)
         return self.all_ids[start : start + count]
 
     async def match(self, cluster, match_id):
@@ -59,7 +62,7 @@ class FakeMatchClient:
     def __init__(self, matches_by_id: dict) -> None:
         self.matches_by_id = matches_by_id
 
-    async def match_ids(self, cluster, puuid, start=0, count=20):
+    async def match_ids(self, cluster, puuid, start=0, count=20, queue=None):
         return list(self.matches_by_id)[start : start + count]
 
     async def match(self, cluster, match_id):
@@ -87,6 +90,21 @@ class RecentMatchIdsTests(unittest.IsolatedAsyncioTestCase):
         ids = await recent_match_ids(client, "europe", "puuid", 0)
         self.assertEqual(ids, [])
         self.assertEqual(client.pages, [])
+
+    async def test_no_queue_is_sent_for_all_queues(self):
+        client = FakePagingClient(total=10)
+        await recent_match_ids(client, "europe", "puuid", 5)
+        self.assertEqual(client.queues, [None])
+
+    async def test_the_ranked_queue_id_is_passed_to_riot(self):
+        # Filtering at the source means 5 solo games, not 5 games of any kind.
+        client = FakePagingClient(total=10)
+        await recent_match_ids(client, "europe", "puuid", 5, queue=MatchQueue.SOLO)
+        self.assertEqual(client.queues, [420])
+
+        client = FakePagingClient(total=10)
+        await recent_match_ids(client, "europe", "puuid", 5, queue=MatchQueue.FLEX)
+        self.assertEqual(client.queues, [440])
 
 
 class FetchRecentMatchesTests(unittest.IsolatedAsyncioTestCase):
@@ -119,7 +137,7 @@ class ConcurrencyTrackingClient:
         self.in_flight = 0
         self.peak_in_flight = 0
 
-    async def match_ids(self, cluster, puuid, start=0, count=20):
+    async def match_ids(self, cluster, puuid, start=0, count=20, queue=None):
         return self.all_ids[start : start + count]
 
     async def match(self, cluster, match_id):
@@ -165,6 +183,25 @@ class AnalyseChampionPoolTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(pool.champions), 1)
         self.assertEqual(pool.champions[0].champion_id, 157)
         self.assertEqual(pool.top[0].champion_id, 157)
+
+    async def test_the_pool_records_which_filter_it_was_computed_over(self):
+        pool = await analyse_champion_pool(
+            FakePagingClient(total=0), "EUW", "puuid", queue=MatchQueue.FLEX
+        )
+        self.assertEqual(pool.queue, MatchQueue.FLEX)
+
+    async def test_a_stray_off_queue_match_is_dropped_from_a_filtered_pool(self):
+        # Belt-and-braces: even if Riot hands back a match outside the requested
+        # queue, it must not reach the aggregation.
+        solo = _match("M0", "puuid", 157, True)
+        solo["info"]["queueId"] = 420
+        aram = _match("M1", "puuid", 238, True)
+        aram["info"]["queueId"] = 450
+        client = FakeMatchClient({"M0": solo, "M1": aram})
+
+        pool = await analyse_champion_pool(client, "EUW", "puuid", count=2, queue=MatchQueue.SOLO)
+        self.assertEqual(pool.total_games, 1)
+        self.assertEqual([c.champion_id for c in pool.champions], [157])
 
     async def test_pool_survives_a_player_whose_only_game_fails_to_fetch(self):
         client = FakeMatchClient({"M0": RiotAPIError(503, "service unavailable")})

@@ -2,6 +2,8 @@
 
 from pydantic import BaseModel
 
+from app.riot.queues import MatchQueue
+
 
 class MasteryEntry(BaseModel):
     champion_id: int
@@ -74,6 +76,7 @@ class ChampionPool(BaseModel):
     simply has a small (or empty) pool.
     """
 
+    queue: MatchQueue = MatchQueue.ALL  # which filter these numbers were computed over
     total_games: int
     champions: list[ChampionStats]
     top: list[ChampionStats]

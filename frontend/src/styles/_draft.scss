@@ -1,6 +1,7 @@
 .draft {
   flex: 2 1 470px;
   min-width: 0;
+  max-width: 640px; // keeps it a comfortable width when centred on its own
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 20px;

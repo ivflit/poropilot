@@ -192,6 +192,24 @@ h3 {
   flex-wrap: wrap;
   gap: 22px;
   align-items: flex-start;
+  justify-content: center; // draft sits centred until a profile slides in beside it
+}
+
+// Profile column slides + fades in when a search runs.
+.col-enter-active {
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease;
+}
+.col-enter-from {
+  opacity: 0;
+  transform: translateX(-18px);
+}
+.col-leave-active {
+  transition: opacity 0.2s ease;
+}
+.col-leave-to {
+  opacity: 0;
 }
 
 /* Generic card */

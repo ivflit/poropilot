@@ -1,0 +1,41 @@
+# Netlify config — the free-tier frontend deploy.
+#
+# In Netlify: Add new site → Import from Git → pick this repo. Netlify reads this file,
+# so the only thing left to set by hand is VITE_API_BASE (Site configuration →
+# Environment variables) pointing at your Render backend, e.g.
+#   VITE_API_BASE = https://poropilot-api.onrender.com
+# It's a build-time variable — Vite inlines it into the bundle, so changing it needs a
+# redeploy, and it must never hold anything secret.
+
+[build]
+  base    = "frontend"
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Deploy previews and branch builds get their own subdomain. Add the backend's
+# CORS_ORIGIN_REGEX (see render.yaml) so those origins can call the API too.
+[context.deploy-preview.environment]
+  VITE_API_BASE = "https://poropilot-api.onrender.com"
+
+[context.branch-deploy.environment]
+  VITE_API_BASE = "https://poropilot-api.onrender.com"
+
+# SPA fallback — the app is client-routed, so every path serves index.html.
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
+
+# The bundle is content-hashed by Vite, so it can be cached hard. index.html must not be.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache"

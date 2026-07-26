@@ -9,11 +9,15 @@ Tick a box only when the work is done **and** a test proves it.
 ```
 T1 (champion data)  ── blocks ──▶ T2, T3, T4
 T3 (pool + winrate) ── blocks ──▶ T5
-T2, T4              ── blocks ──▶ T7 (deploy)
+T2, T4              ── blocks ──▶ T7 (deploy), T16 (free deploy)
 T6 (Redis)          independent
+
+T17 (accounts)      ── blocks ──▶ T18 (saved pools), T19 (match filter), T20 (AI review)
+T19 (match filter)  ── blocks ──▶ T20 (AI post-game review)
 ```
 
-Do **T1 first** — it's unblocked and everything visual depends on it.
+T1–T15 are done. The live open work is **T16** (get it deployed), then the
+accounts arc **T17 → T18 / T19 → T20**.
 
 ---
 
@@ -170,3 +174,128 @@ Do **T1 first** — it's unblocked and everything visual depends on it.
   - [x] Draft assistant: segmented role control, 2×2 icon pickers, numbered suggestion cards with tags + signal bars.
   - [x] Matches the mock's fonts, radii and colours; light + dark preserved.
   - [x] All tests pass.
+
+### T16 — Free deploy: env-driven CORS + Render/Netlify config (roadmap R1)
+- **Priority:** p1 · **Area:** infra · **Depends on:** T2, T4 · **Ralph:** no
+- **Why:** A live URL is the single biggest portfolio signal. T7's droplet stack needs a
+  paid server, a domain and manual TLS; this adds a **zero-cost** path (Netlify frontend +
+  Render backend) that auto-deploys on merge. Split hosting means cross-origin calls, so
+  CORS has to be configurable — and `CORS_ORIGINS` as a `list[str]` only accepted JSON
+  from the environment, which crashed the app on a plain URL.
+- **Acceptance criteria**
+  - [x] `CORS_ORIGINS` accepts a comma-separated list (and still JSON); whitespace and
+        trailing slashes tolerated.
+  - [x] `CORS_ORIGIN_REGEX` allows preview/branch deploys (Netlify gives each a fresh subdomain).
+  - [x] `render.yaml` blueprint deploys the backend + a free Key Value (Redis) store.
+  - [x] `netlify.toml` builds the frontend with the SPA redirect and asset caching.
+  - [x] `frontend/.env.example` documents `VITE_API_BASE`; `backend/.env.example` documents CORS.
+  - [x] `deploy/README.md` covers both the free path and the droplet path.
+  - [x] Unit tests cover the origin parsing (comma, JSON, blank, trailing slash, regex).
+  - [ ] Live URL added to the README. *(Needs Ivan's Netlify/Render accounts — see
+        `deploy/README.md` Option A.)*
+
+---
+
+## The accounts arc (T17 → T20)
+
+Everything below hangs off having a real user account. T17 introduces the first database
+in the project, so do it first and do it properly.
+
+### T17 — Accounts: sign up and log in
+- **Priority:** p2 · **Area:** backend + frontend · **Depends on:** T16 · **Ralph:** **yes**
+- **Why:** Nothing can be *saved* today — every visit starts from an empty search box.
+  Accounts unlock saved champion pools (T18) and personalised analysis (T20), and they
+  introduce a real database, password handling and auth flows. Big and fiddly, touching
+  both ends of the stack → Ralph.
+- **Design notes**
+  - Postgres via SQLAlchemy 2.0 async + Alembic migrations. Free tiers: Render Postgres
+    or Neon. Keep the cache (Redis) separate — the DB is for durable user data only.
+  - Email + password with Argon2 hashing (`argon2-cffi`), short-lived JWT access token
+    plus a refresh token in an httpOnly cookie. Don't hand-roll the crypto.
+  - A user optionally links one Riot ID (region + name + tag) so the app can open on
+    their own profile.
+- **Acceptance criteria**
+  - [ ] Postgres + async SQLAlchemy + Alembic wired in; `DATABASE_URL` env-driven, and
+        the app still starts (with auth routes disabled) when it's unset.
+  - [ ] `POST /api/auth/signup` and `POST /api/auth/login` return tokens; passwords are
+        Argon2-hashed and never logged or returned.
+  - [ ] `POST /api/auth/logout`, `POST /api/auth/refresh`, and `GET /api/auth/me` for the
+        current user.
+  - [ ] A `get_current_user` dependency protects authenticated routes; a bad/expired
+        token gives 401, not 500.
+  - [ ] Users can link a Riot ID to their account; the app opens on it when logged in.
+  - [ ] Frontend: sign-up and log-in forms, a session composable, header shows the
+        signed-in user with a log-out control; the whole app still works logged **out**.
+  - [ ] Tests: backend covers signup/login/refresh/401 paths and duplicate-email
+        rejection; a Playwright test covers the log-in journey.
+- **Open question (Ivan, 50/50 on this):** should an account also keep a **history of
+  previous sessions** — the summoners you looked up, drafts you ran? Deferred until T17
+  lands; it's a small additive table (`search_history`) if we want it. Not in scope here.
+
+### T18 — Saved champion pools per role, loaded into the draft assistant
+- **Priority:** p2 · **Area:** backend + frontend · **Depends on:** T17 · **Ralph:** no
+- **Why:** You retype your pool into the draft board every single time. And most players
+  are a two-role main (top *and* mid, say) with a different pool for each — one flat
+  saved list wouldn't fit. Save a pool **per role**, then load it in one click.
+- **Acceptance criteria**
+  - [ ] A user can save a champion pool for **each** role (TOP/JUNGLE/MID/ADC/SUPPORT)
+        and hold several at once; saving a role again replaces that role's pool only.
+  - [ ] `GET/PUT/DELETE /api/me/pools` (and `/api/me/pools/{role}`) — authenticated,
+        scoped to the caller, with the usual Pydantic in/out.
+  - [ ] Picking a role in the draft assistant auto-loads that role's saved pool; the user
+        can still edit the loaded pool without overwriting what's saved.
+  - [ ] A one-click "save this as my {role} pool", and seeding a pool from the summoner's
+        analysed champion pool (T8) rather than typing it out.
+  - [ ] Logged-out users keep today's behaviour (manual entry, nothing saved).
+  - [ ] Tests: route tests for the CRUD and cross-user isolation (user A cannot read or
+        write user B's pools); Playwright covers save → reload → auto-load.
+
+### T19 — Filter matches by queue (all / ranked solo-duo / ranked flex)
+- **Priority:** p2 · **Area:** backend + frontend · **Depends on:** T3 · **Ralph:** no
+- **Why:** Today every match is lumped together, so ARAM and normals pollute the win-rates
+  and the champion pool — the numbers don't reflect how you actually perform in ranked.
+  Solo-duo and flex are different games and deserve separate stats.
+- **Design notes**
+  - Riot queue IDs: **420** ranked solo/duo, **440** ranked flex, **400/430** normals,
+    **450** ARAM. Match-V5's match-ids endpoint takes a `queue` parameter, so filter at
+    the source where we can and by `info.queueId` on cached matches otherwise.
+- **Acceptance criteria**
+  - [ ] `GET /api/pool/...` and the match endpoints accept a `queue` filter
+        (`all` | `solo` | `flex`), validated by an enum — a bad value gives 422.
+  - [ ] Aggregate stats (games, win-rate, KDA, CS/min, form) recompute per filter.
+  - [ ] Cache keys include the filter, so switching filters doesn't serve stale numbers
+        or trigger a re-fetch of matches we already hold.
+  - [ ] A segmented control in the UI switches the filter and updates profile, recent
+        form and champion pool together.
+  - [ ] Empty state when the player has no games in the selected queue.
+  - [ ] Tests: fixture-based aggregation asserts each filter over a mixed match set;
+        Playwright covers switching the filter.
+
+### T20 — AI post-game review of recent ranked games
+- **Priority:** p2 · **Area:** backend + frontend · **Depends on:** T19 · **Ralph:** no
+- **Why:** Stats tell you *what* happened, not *what to do differently*. Turn a recent
+  ranked game's numbers into plain coaching — "you were 2k gold down by 15 and died 4
+  times pre-first-item, so you had no impact; farm safely to your two-item spike and
+  look for a play then." This is the feature that makes the app feel like a coach.
+- **Design notes**
+  - Reuse the provider-agnostic AI layer (`ai/provider.py`) so it works on Anthropic
+    *and* Gemini, with structured JSON out, and returns 503 when no key — same as the
+    draft assistant.
+  - Feed it **derived** stats, not the raw match blob: gold/XP/CS differential vs the
+    lane opponent at 10 and 15, deaths and when they happened, damage share, vision,
+    objective participation, KDA, game length. Ground the advice in numbers so it
+    can't invent a narrative.
+- **Acceptance criteria**
+  - [ ] `POST /api/review/{match_id}` (or `GET` with the PUUID) returns a structured
+        review: a one-line verdict, 2–4 specific things that went wrong each citing the
+        stat behind it, and 2–3 concrete things to do next game.
+  - [ ] Scoped to ranked games (uses T19's queue filter); rejects non-ranked with a
+        clear message.
+  - [ ] Every point is grounded in a stat we actually computed — no advice without a
+        number behind it.
+  - [ ] Cached per match + player (an AI call per page view would be wasteful and slow).
+  - [ ] Degrades cleanly with no AI key (503 + the UI hides the panel), exactly like the
+        draft assistant.
+  - [ ] UI: pick a recent ranked game, see the review, with loading and error states.
+  - [ ] Tests: stubbed AI client asserts the response shape; the stat-derivation maths is
+        tested against a fixture match; the no-key path is covered.

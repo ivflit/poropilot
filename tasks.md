@@ -12,8 +12,8 @@ T3 (pool + winrate) ── blocks ──▶ T5
 T2, T4              ── blocks ──▶ T7 (deploy), T16 (free deploy)
 T6 (Redis)          independent
 
-T17 (accounts)      ── blocks ──▶ T18 (saved pools), T19 (match filter), T20 (AI review)
-T19 (match filter)  ── blocks ──▶ T20 (AI post-game review)
+T17 (accounts)      ── blocks ──▶ T18 (saved pools), T20 (AI review)
+T19 (match filter)  ── blocks ──▶ T20 (AI post-game review), T21 (filter layout)
 ```
 
 T1–T15 are done. The live open work is **T16** (get it deployed), then the
@@ -299,3 +299,32 @@ in the project, so do it first and do it properly.
   - [ ] UI: pick a recent ranked game, see the review, with loading and error states.
   - [ ] Tests: stubbed AI client asserts the response shape; the stat-derivation maths is
         tested against a fixture match; the no-key path is covered.
+
+### T21 — Make the queue filter's effect visible in the layout
+- **Priority:** p2 · **Area:** frontend · **Depends on:** T19 · **Ralph:** no
+- **Why:** T19 works, but you can't *see* it work. Switching the filter changes the
+  recent-form card and the rank badge — and recent form sits at the bottom of the left
+  column, below a profile card and a mastery card that (correctly) don't move. The
+  result is a control that looks broken: you click it and nothing appears to happen.
+- **Design notes**
+  - **Champion mastery is lifetime data** — Riot doesn't scope mastery by queue, so it
+    can never respond to the filter. Rather than hide it, label it honestly ("all time")
+    so it's clear it isn't stale.
+  - The fix is proximity and feedback: put the queue-dependent content next to the
+    control that changes it. Options worth trying — move recent form to the top of the
+    column; move the filter onto the recent-form card's header; or promote recent form
+    into its own wider panel.
+  - A brief transition or highlight when the numbers change would confirm the click
+    registered, especially when a filter returns similar-looking values.
+  - Bear in mind T20 will add a post-game review panel that's also queue-scoped, and
+    T3/R3's match list will be too — so the layout should have an obvious home for
+    "things that respond to the filter" rather than being tuned for one card.
+- **Acceptance criteria**
+  - [ ] Switching the queue filter produces an obvious, immediate visible change without
+        scrolling, at desktop and mobile widths.
+  - [ ] Queue-dependent content (recent form, rank badge) is visually grouped with, or
+        adjacent to, the filter control.
+  - [ ] Champion mastery is labelled as all-time so it doesn't read as stale.
+  - [ ] Light and dark themes both hold up; existing card styling and tokens reused
+        (no hard-coded colours).
+  - [ ] Playwright covers the reordered layout; all existing tests still pass.

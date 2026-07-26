@@ -50,7 +50,15 @@ onMounted(load);
       </div>
 
       <div class="columns">
-        <ProfileColumn :profile="profile" :pool="pool" :loading="loading" :version="ddragonVersion" />
+        <Transition name="col">
+          <ProfileColumn
+            v-if="loading || profile"
+            :profile="profile"
+            :pool="pool"
+            :loading="loading"
+            :version="ddragonVersion"
+          />
+        </Transition>
         <DraftAssistant v-if="aiEnabled" />
       </div>
 

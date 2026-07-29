@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from app.ai.provider import ai_enabled, patch_digest, suggest_pick
 from app.cache import cache
+from app.config import settings
 from app.dependencies import (
     get_champion_map,
     get_ddragon_version,
@@ -32,6 +33,7 @@ def get_config(request: Request) -> dict:
     """Client-facing config — AI availability + the current Data Dragon version."""
     return {
         "ai_enabled": ai_enabled(),
+        "auth_enabled": bool(settings.database_url),
         "ddragon_version": getattr(request.app.state, "ddragon_version", None),
     }
 

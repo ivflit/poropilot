@@ -16,8 +16,8 @@ T17 (accounts)      ── blocks ──▶ T18 (saved pools), T20 (AI review)
 T19 (match filter)  ── blocks ──▶ T20 (AI post-game review), T21 (filter layout)
 ```
 
-T1–T15 are done. The live open work is **T16** (get it deployed), then the
-accounts arc **T17 → T18 / T19 → T20**.
+T1–T15, T19 and T21 are done. T16 awaits deploy accounts. The accounts arc
+**T17 → T18 / T19 → T20** is unblocked.
 
 ---
 
@@ -202,7 +202,7 @@ Everything below hangs off having a real user account. T17 introduces the first 
 in the project, so do it first and do it properly.
 
 ### T17 — Accounts: sign up and log in
-- **Priority:** p2 · **Area:** backend + frontend · **Depends on:** T16 · **Ralph:** **yes**
+- **Priority:** p2 · **Area:** backend + frontend · **Depends on:** — · **Ralph:** **yes**
 - **Why:** Nothing can be *saved* today — every visit starts from an empty search box.
   Accounts unlock saved champion pools (T18) and personalised analysis (T20), and they
   introduce a real database, password handling and auth flows. Big and fiddly, touching
@@ -215,19 +215,19 @@ in the project, so do it first and do it properly.
   - A user optionally links one Riot ID (region + name + tag) so the app can open on
     their own profile.
 - **Acceptance criteria**
-  - [ ] Postgres + async SQLAlchemy + Alembic wired in; `DATABASE_URL` env-driven, and
+  - [x] Postgres + async SQLAlchemy + Alembic wired in; `DATABASE_URL` env-driven, and
         the app still starts (with auth routes disabled) when it's unset.
-  - [ ] `POST /api/auth/signup` and `POST /api/auth/login` return tokens; passwords are
+  - [x] `POST /api/auth/signup` and `POST /api/auth/login` return tokens; passwords are
         Argon2-hashed and never logged or returned.
-  - [ ] `POST /api/auth/logout`, `POST /api/auth/refresh`, and `GET /api/auth/me` for the
+  - [x] `POST /api/auth/logout`, `POST /api/auth/refresh`, and `GET /api/auth/me` for the
         current user.
-  - [ ] A `get_current_user` dependency protects authenticated routes; a bad/expired
+  - [x] A `get_current_user` dependency protects authenticated routes; a bad/expired
         token gives 401, not 500.
-  - [ ] Users can link a Riot ID to their account; the app opens on it when logged in.
-  - [ ] Frontend: sign-up and log-in forms, a session composable, header shows the
+  - [x] Users can link a Riot ID to their account; the app opens on it when logged in.
+  - [x] Frontend: sign-up and log-in forms, a session composable, header shows the
         signed-in user with a log-out control; the whole app still works logged **out**.
-  - [ ] Tests: backend covers signup/login/refresh/401 paths and duplicate-email
-        rejection; a Playwright test covers the log-in journey.
+  - [x] Tests: backend covers signup/login/refresh/401 paths and duplicate-email
+        rejection (22 tests); Playwright covers the log-in journey (6 tests).
 - **Open question (Ivan, 50/50 on this):** should an account also keep a **history of
   previous sessions** — the summoners you looked up, drafts you ran? Deferred until T17
   lands; it's a small additive table (`search_history`) if we want it. Not in scope here.

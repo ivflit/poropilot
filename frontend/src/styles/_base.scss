@@ -80,7 +80,16 @@ h3 {
   margin: 4px 0 0;
 }
 
-.theme-toggle {
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.theme-toggle,
+.login-btn,
+.logout-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -99,6 +108,35 @@ h3 {
   &:hover {
     border-color: var(--accent-strong);
   }
+}
+
+.login-btn {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+
+  &:hover {
+    background: var(--accent-strong);
+    border-color: var(--accent-strong);
+  }
+}
+
+.user-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-email {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.logout-btn {
+  height: 34px;
+  padding: 0 12px;
+  font-size: 12.5px;
 }
 
 /* Search bar */

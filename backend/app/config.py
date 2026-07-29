@@ -21,6 +21,15 @@ class Settings(BaseSettings):
 
     redis_url: str | None = None
 
+    # Postgres — the app starts without it (auth routes are simply not mounted).
+    database_url: str | None = None
+
+    # JWT auth tokens.
+    jwt_secret: str = ""  # required when database_url is set; random fallback for dev
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 30
+    refresh_token_expire_days: int = 7
+
     # CORS origins allowed to call the API (the Vite dev server by default). When the
     # frontend and backend are hosted separately (Netlify + Render) the browser call is
     # cross-origin, so this has to be set in the environment — as a comma-separated

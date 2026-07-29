@@ -1,19 +1,36 @@
 <script setup>
-import { onMounted } from "vue";
+import { onMounted, ref, watch } from "vue";
 import ProfileColumn from "./components/ProfileColumn.vue";
 import DraftAssistant from "./components/DraftAssistant.vue";
+import AuthModal from "./components/AuthModal.vue";
 import { useSummoner } from "./composables/useSummoner";
 import { useConfig } from "./composables/useConfig";
 import { useTheme } from "./composables/useTheme";
+import { useSession } from "./composables/useSession";
 
 const { region, riotId, queue, profile, pool, error, loading, poolLoading, onInput, search } =
   useSummoner();
-const { aiEnabled, ddragonVersion, load } = useConfig();
+const { aiEnabled, authEnabled, ddragonVersion, load } = useConfig();
 const { theme, toggle } = useTheme();
+const { user, isLoggedIn, logout, restore } = useSession();
+
+const showAuth = ref(false);
 
 const REGIONS = ["EUW", "EUNE", "NA", "KR", "BR", "JP", "OCE", "TR", "RU", "LAN", "LAS"];
 
-onMounted(load);
+// When the user logs in and has a linked Riot ID, open their profile automatically.
+watch(user, (u) => {
+  if (u?.riot_name && u?.riot_tag && u?.riot_region) {
+    region.value = u.riot_region;
+    riotId.value = `${u.riot_name}#${u.riot_tag}`;
+    search();
+  }
+});
+
+onMounted(async () => {
+  await load();
+  if (authEnabled.value) await restore();
+});
 </script>
 
 <template>
@@ -27,9 +44,18 @@ onMounted(load);
             <p class="tagline">Your League companion — profile, champ pool &amp; AI draft help.</p>
           </div>
         </div>
-        <button class="theme-toggle" type="button" aria-label="Toggle theme" @click="toggle">
-          <span>{{ theme === "dark" ? "☀️" : "🌙" }}</span>{{ theme === "dark" ? "Light" : "Dark" }}
-        </button>
+        <div class="header-actions">
+          <template v-if="authEnabled">
+            <div v-if="isLoggedIn" class="user-pill">
+              <span class="user-email">{{ user.email }}</span>
+              <button class="logout-btn" type="button" @click="logout">Log out</button>
+            </div>
+            <button v-else class="login-btn" type="button" @click="showAuth = true">Log in</button>
+          </template>
+          <button class="theme-toggle" type="button" aria-label="Toggle theme" @click="toggle">
+            <span>{{ theme === "dark" ? "☀️" : "🌙" }}</span>{{ theme === "dark" ? "Light" : "Dark" }}
+          </button>
+        </div>
       </header>
 
       <div class="search-bar">
@@ -73,5 +99,7 @@ onMounted(load);
         <div>Champion art © Riot Games · Data via Data Dragon.</div>
       </footer>
     </div>
+
+    <AuthModal v-if="showAuth" @close="showAuth = false" />
   </div>
 </template>

@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import router
 from app.champions import ChampionService
 from app.config import settings
+from app.db import engine
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,8 @@ async def lifespan(app: FastAPI):
 
     yield
     await app.state.http.aclose()
+    if engine:
+        await engine.dispose()
 
 
 app = FastAPI(title="PoroPilot API", version="0.1.0", lifespan=lifespan)
@@ -41,9 +44,16 @@ app.add_middleware(
     allow_origin_regex=settings.cors_origin_regex,
     allow_methods=["*"],
     allow_headers=["*"],
+    allow_credentials=True,
 )
 
 app.include_router(router)
+
+# Auth routes are only available when a database is configured.
+if settings.database_url:
+    from app.api.auth_routes import router as auth_router
+
+    app.include_router(auth_router)
 
 
 @app.get("/health")

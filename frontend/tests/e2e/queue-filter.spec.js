@@ -115,3 +115,28 @@ test("switching the filter keeps the profile on screen", async ({ page }) => {
   await expect(page.locator(".profile")).toContainText("Faker#KR1");
   await expect(page.locator(".profile")).toContainText("Level 500");
 });
+
+test("the queue filter lives inside the recent form card, adjacent to its content", async ({ page }) => {
+  await search(page);
+
+  // The filter group is a child of the same card that holds the pool list.
+  const recentFormCard = page.locator(".card", { has: page.locator(".pool") });
+  await expect(recentFormCard.getByRole("group", { name: "Filter matches by queue" })).toBeVisible();
+  await expect(recentFormCard.locator("h3")).toHaveText("Recent form");
+});
+
+test("champion mastery is labelled as all-time data", async ({ page }) => {
+  await search(page);
+
+  const masteryCard = page.locator(".card", { has: page.locator(".m-row") });
+  await expect(masteryCard.locator(".card-sub")).toContainText("All time");
+});
+
+test("recent form card appears before the mastery card in the DOM", async ({ page }) => {
+  await search(page);
+
+  // Both cards live inside .profile; recent form (with .pool) should come first.
+  const cards = page.locator(".profile > .card");
+  const firstCard = cards.first();
+  await expect(firstCard.locator("h3")).toHaveText("Recent form");
+});

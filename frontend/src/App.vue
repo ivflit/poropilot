@@ -13,14 +13,6 @@ const { theme, toggle } = useTheme();
 
 const REGIONS = ["EUW", "EUNE", "NA", "KR", "BR", "JP", "OCE", "TR", "RU", "LAN", "LAS"];
 
-// Ranked solo and flex are different games — blending them (and ARAM) makes the
-// win-rates meaningless, so the stats below can be narrowed to one queue.
-const QUEUES = [
-  { value: "all", label: "All queues" },
-  { value: "solo", label: "Ranked solo/duo" },
-  { value: "flex", label: "Ranked flex" },
-];
-
 onMounted(load);
 </script>
 
@@ -58,20 +50,6 @@ onMounted(load);
         <p v-if="error" class="search-error" role="alert"><span>⚠</span>{{ error }}</p>
       </div>
 
-      <div v-if="profile" class="queue-seg" role="group" aria-label="Filter matches by queue">
-        <button
-          v-for="q in QUEUES"
-          :key="q.value"
-          type="button"
-          class="queue-btn"
-          :class="{ active: queue === q.value }"
-          :aria-pressed="queue === q.value"
-          @click="queue = q.value"
-        >
-          {{ q.label }}
-        </button>
-      </div>
-
       <div class="columns">
         <Transition name="col">
           <ProfileColumn
@@ -80,7 +58,7 @@ onMounted(load);
             :pool="pool"
             :loading="loading"
             :pool-loading="poolLoading"
-            :queue="queue"
+            v-model:queue="queue"
             :version="ddragonVersion"
           />
         </Transition>

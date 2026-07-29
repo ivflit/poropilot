@@ -320,11 +320,11 @@ in the project, so do it first and do it properly.
     T3/R3's match list will be too — so the layout should have an obvious home for
     "things that respond to the filter" rather than being tuned for one card.
 - **Acceptance criteria**
-  - [ ] Switching the queue filter produces an obvious, immediate visible change without
+  - [x] Switching the queue filter produces an obvious, immediate visible change without
         scrolling, at desktop and mobile widths.
-  - [ ] Queue-dependent content (recent form, rank badge) is visually grouped with, or
+  - [x] Queue-dependent content (recent form, rank badge) is visually grouped with, or
         adjacent to, the filter control.
-  - [ ] Champion mastery is labelled as all-time so it doesn't read as stale.
-  - [ ] Light and dark themes both hold up; existing card styling and tokens reused
+  - [x] Champion mastery is labelled as all-time so it doesn't read as stale.
+  - [x] Light and dark themes both hold up; existing card styling and tokens reused
         (no hard-coded colours).
-  - [ ] Playwright covers the reordered layout; all existing tests still pass.
+  - [x] Playwright covers the reordered layout; all existing tests still pass.

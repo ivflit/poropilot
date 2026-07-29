@@ -2,6 +2,12 @@
 import { computed, onMounted } from "vue";
 import { useChampions } from "../composables/useChampions";
 
+const QUEUES = [
+  { value: "all", label: "All queues" },
+  { value: "solo", label: "Ranked solo/duo" },
+  { value: "flex", label: "Ranked flex" },
+];
+
 const props = defineProps({
   profile: { type: Object, default: null },
   pool: { type: Object, default: null },
@@ -10,6 +16,8 @@ const props = defineProps({
   queue: { type: String, default: "all" },
   version: { type: String, default: null },
 });
+
+const emit = defineEmits(["update:queue"]);
 
 const { load, lookup } = useChampions();
 onMounted(load);
@@ -101,8 +109,54 @@ const barColor = (p) => (p >= 50 ? "var(--good)" : "var(--gold)");
 
       <div class="card">
         <div class="card-head">
+          <h3>Recent form</h3>
+          <div class="queue-seg" role="group" aria-label="Filter matches by queue">
+            <button
+              v-for="q in QUEUES"
+              :key="q.value"
+              type="button"
+              class="queue-btn"
+              :class="{ active: queue === q.value }"
+              :aria-pressed="queue === q.value"
+              @click="emit('update:queue', q.value)"
+            >
+              {{ q.label }}
+            </button>
+          </div>
+        </div>
+
+        <Transition name="form-swap" mode="out-in">
+          <p v-if="poolLoading" key="loading" class="pool-note">Loading recent games…</p>
+          <p v-else-if="!pool" key="unavailable" class="pool-note">Recent form is unavailable right now.</p>
+          <p v-else-if="!pool.top.length" key="empty" class="pool-note">
+            No games in {{ queueName }} — try another filter.
+          </p>
+
+          <ul v-else key="list" class="pool">
+            <li v-for="c in pool.top" :key="c.champion_id" class="f-row">
+              <img class="f-icon" :src="championIcon(c.champion_id)" :alt="c.champion_name" />
+              <div class="f-main">
+                <div class="f-top">
+                  <span class="f-name">{{ c.champion_name }}</span>
+                  <span class="f-wg">{{ c.wins }}W · {{ c.games }}g</span>
+                </div>
+                <div class="bar">
+                  <div
+                    class="bar-fill"
+                    :style="{ width: pct(c.win_rate) + '%', background: barColor(pct(c.win_rate)) }"
+                  ></div>
+                </div>
+              </div>
+              <div class="f-pct" :style="{ color: barColor(pct(c.win_rate)) }">{{ pct(c.win_rate) }}%</div>
+            </li>
+          </ul>
+        </Transition>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
           <h3>Champion mastery</h3>
-          <span class="card-sub">Top {{ profile.top_masteries.length }}</span>
+          <span class="card-sub">All time · Top {{ profile.top_masteries.length }}</span>
         </div>
         <div class="rows">
           <div v-for="m in profile.top_masteries" :key="m.champion_id" class="m-row">
@@ -114,38 +168,6 @@ const barColor = (p) => (p >= 50 ? "var(--good)" : "var(--gold)");
             <div class="m-badge">🔷 M{{ m.level }}</div>
           </div>
         </div>
-      </div>
-
-      <div class="card">
-        <div class="card-head">
-          <h3>Recent form</h3>
-          <span class="card-sub">{{ queueName }}</span>
-        </div>
-
-        <p v-if="poolLoading" class="pool-note">Loading recent games…</p>
-        <p v-else-if="!pool" class="pool-note">Recent form is unavailable right now.</p>
-        <p v-else-if="!pool.top.length" class="pool-note">
-          No games in {{ queueName }} — try another filter.
-        </p>
-
-        <ul v-else class="pool">
-          <li v-for="c in pool.top" :key="c.champion_id" class="f-row">
-            <img class="f-icon" :src="championIcon(c.champion_id)" :alt="c.champion_name" />
-            <div class="f-main">
-              <div class="f-top">
-                <span class="f-name">{{ c.champion_name }}</span>
-                <span class="f-wg">{{ c.wins }}W · {{ c.games }}g</span>
-              </div>
-              <div class="bar">
-                <div
-                  class="bar-fill"
-                  :style="{ width: pct(c.win_rate) + '%', background: barColor(pct(c.win_rate)) }"
-                ></div>
-              </div>
-            </div>
-            <div class="f-pct" :style="{ color: barColor(pct(c.win_rate)) }">{{ pct(c.win_rate) }}%</div>
-          </li>
-        </ul>
       </div>
     </template>
   </section>

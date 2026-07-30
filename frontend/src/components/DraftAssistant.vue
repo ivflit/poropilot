@@ -1,13 +1,50 @@
 <script setup>
-import { onMounted } from "vue";
+import { onMounted, watch } from "vue";
 import ChampionPicker from "./ChampionPicker.vue";
 import { useDraft } from "../composables/useDraft";
 import { useChampions } from "../composables/useChampions";
+import { useSession } from "../composables/useSession";
+import { useSavedPools } from "../composables/useSavedPools";
+
+const props = defineProps({
+  poolChampions: { type: Array, default: () => [] },
+});
 
 const { role, championPool, allyPicks, enemyBans, enemyPicks, suggestions, loading, error, submit } =
   useDraft();
 const { load, lookupName } = useChampions();
+const { isLoggedIn } = useSession();
+const { pools, fetchAll, save, getPool } = useSavedPools();
+
 onMounted(load);
+
+// When the user logs in (or the session restores), fetch their saved presets
+// and load the one for the current role.
+watch(isLoggedIn, async (loggedIn) => {
+  if (loggedIn) {
+    await fetchAll();
+    loadPreset(role.value);
+  }
+}, { immediate: true });
+
+// Auto-load the saved preset when the role changes.
+watch(role, (r) => loadPreset(r));
+
+function loadPreset(r) {
+  if (!isLoggedIn.value) return;
+  const saved = getPool(r);
+  championPool.value = saved ? [...saved] : [];
+}
+
+async function savePreset() {
+  await save(role.value, championPool.value);
+}
+
+function seedFromProfile() {
+  if (props.poolChampions.length) {
+    championPool.value = [...props.poolChampions];
+  }
+}
 
 const ROLES = [
   { value: "TOP", label: "TOP" },
@@ -23,6 +60,8 @@ const CONF_COLOR = { high: "var(--good)", medium: "var(--gold)", low: "var(--mut
 const icon = (name) => lookupName(name)?.image_url ?? null;
 const lit = (conf, i) => i < (CONF_BARS[conf] ?? 0);
 const confColor = (conf) => CONF_COLOR[conf] ?? "var(--muted)";
+
+const hasSavedPool = (r) => !!(pools.value && pools.value[r]);
 </script>
 
 <template>
@@ -44,7 +83,7 @@ const confColor = (conf) => CONF_COLOR[conf] ?? "var(--muted)";
           :key="r.value"
           type="button"
           class="role-btn"
-          :class="{ active: role === r.value }"
+          :class="{ active: role === r.value, 'has-preset': hasSavedPool(r.value) }"
           @click="role = r.value"
         >
           {{ r.label }}
@@ -56,6 +95,26 @@ const confColor = (conf) => CONF_COLOR[conf] ?? "var(--muted)";
         <ChampionPicker v-model="allyPicks" label="Allied picks" dot="var(--good)" />
         <ChampionPicker v-model="enemyBans" label="Enemy bans" dot="var(--error)" />
         <ChampionPicker v-model="enemyPicks" label="Enemy picks" dot="var(--accent-strong)" />
+      </div>
+
+      <div v-if="isLoggedIn || poolChampions.length" class="pool-actions">
+        <button
+          v-if="isLoggedIn"
+          class="pool-action-btn"
+          type="button"
+          :disabled="!championPool.length"
+          @click="savePreset"
+        >
+          Save as {{ role }} pool
+        </button>
+        <button
+          v-if="poolChampions.length"
+          class="pool-action-btn pool-action-seed"
+          type="button"
+          @click="seedFromProfile"
+        >
+          Seed from profile
+        </button>
       </div>
 
       <button class="suggest-btn" type="button" :disabled="loading" @click="submit">

@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, String, func
+from sqlalchemy import JSON, DateTime, ForeignKey, String, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -23,3 +23,15 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+
+
+class SavedPool(Base):
+    """A user's champion pool preset for a specific role."""
+
+    __tablename__ = "saved_pools"
+    __table_args__ = (UniqueConstraint("user_id", "role"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    role: Mapped[str] = mapped_column(String(10))  # TOP / JUNGLE / MID / BOT / SUPPORT
+    champions: Mapped[list] = mapped_column(JSON, default=list)  # ["Aatrox", "Darius", ...]

@@ -238,16 +238,16 @@ in the project, so do it first and do it properly.
   are a two-role main (top *and* mid, say) with a different pool for each — one flat
   saved list wouldn't fit. Save a pool **per role**, then load it in one click.
 - **Acceptance criteria**
-  - [ ] A user can save a champion pool for **each** role (TOP/JUNGLE/MID/ADC/SUPPORT)
+  - [x] A user can save a champion pool for **each** role (TOP/JUNGLE/MID/ADC/SUPPORT)
         and hold several at once; saving a role again replaces that role's pool only.
-  - [ ] `GET/PUT/DELETE /api/me/pools` (and `/api/me/pools/{role}`) — authenticated,
+  - [x] `GET/PUT/DELETE /api/me/pools` (and `/api/me/pools/{role}`) — authenticated,
         scoped to the caller, with the usual Pydantic in/out.
-  - [ ] Picking a role in the draft assistant auto-loads that role's saved pool; the user
+  - [x] Picking a role in the draft assistant auto-loads that role's saved pool; the user
         can still edit the loaded pool without overwriting what's saved.
-  - [ ] A one-click "save this as my {role} pool", and seeding a pool from the summoner's
+  - [x] A one-click "save this as my {role} pool", and seeding a pool from the summoner's
         analysed champion pool (T8) rather than typing it out.
-  - [ ] Logged-out users keep today's behaviour (manual entry, nothing saved).
-  - [ ] Tests: route tests for the CRUD and cross-user isolation (user A cannot read or
+  - [x] Logged-out users keep today's behaviour (manual entry, nothing saved).
+  - [x] Tests: route tests for the CRUD and cross-user isolation (user A cannot read or
         write user B's pools); Playwright covers save → reload → auto-load.
 
 ### T19 — Filter matches by queue (all / ranked solo-duo / ranked flex)

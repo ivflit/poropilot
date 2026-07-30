@@ -51,3 +51,15 @@ export async function apiPut(path, payload) {
   });
   return handleResponse(resp);
 }
+
+export async function apiDelete(path) {
+  const resp = await fetch(`${API_BASE}${path}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+    credentials: "include",
+  });
+  if (!resp.ok) {
+    const body = await resp.json().catch(() => ({}));
+    throw new Error(body.detail ?? `Request failed (${resp.status})`);
+  }
+}

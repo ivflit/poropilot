@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import ProfileColumn from "./components/ProfileColumn.vue";
 import DraftAssistant from "./components/DraftAssistant.vue";
 import AuthModal from "./components/AuthModal.vue";
@@ -15,6 +15,11 @@ const { theme, toggle } = useTheme();
 const { user, isLoggedIn, logout, restore } = useSession();
 
 const showAuth = ref(false);
+
+// Champion names from the analysed pool, for seeding the draft assistant.
+const poolChampionNames = computed(() =>
+  pool.value?.top?.map((c) => c.champion_name) ?? [],
+);
 
 const REGIONS = ["EUW", "EUNE", "NA", "KR", "BR", "JP", "OCE", "TR", "RU", "LAN", "LAS"];
 
@@ -88,7 +93,7 @@ onMounted(async () => {
             :version="ddragonVersion"
           />
         </Transition>
-        <DraftAssistant v-if="aiEnabled" />
+        <DraftAssistant v-if="aiEnabled" :pool-champions="poolChampionNames" />
       </div>
 
       <footer class="site-footer">

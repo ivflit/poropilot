@@ -49,11 +49,13 @@ app.add_middleware(
 
 app.include_router(router)
 
-# Auth routes are only available when a database is configured.
+# Auth and user-data routes are only available when a database is configured.
 if settings.database_url:
     from app.api.auth_routes import router as auth_router
+    from app.api.pool_routes import router as pool_router
 
     app.include_router(auth_router)
+    app.include_router(pool_router)
 
 
 @app.get("/health")

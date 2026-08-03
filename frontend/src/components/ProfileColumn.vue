@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted } from "vue";
+import ReviewPanel from "./ReviewPanel.vue";
 import { useChampions } from "../composables/useChampions";
 
 const QUEUES = [
@@ -15,6 +16,7 @@ const props = defineProps({
   poolLoading: { type: Boolean, default: false },
   queue: { type: String, default: "all" },
   version: { type: String, default: null },
+  aiEnabled: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["update:queue"]);
@@ -71,6 +73,9 @@ const championName = (id) => lookup(id)?.name ?? `Champion ${id}`;
 const championIcon = (id) => lookup(id)?.image_url ?? null;
 const pct = (wr) => Math.round(wr * 100);
 const barColor = (p) => (p >= 50 ? "var(--good)" : "var(--gold)");
+
+const riotName = computed(() => props.profile?.riot_id?.split("#")[0] ?? "");
+const riotTag = computed(() => props.profile?.riot_id?.split("#")[1] ?? "");
 </script>
 
 <template>
@@ -152,6 +157,14 @@ const barColor = (p) => (p >= 50 ? "var(--good)" : "var(--gold)");
           </ul>
         </Transition>
       </div>
+
+      <ReviewPanel
+        v-if="aiEnabled && riotName"
+        :region="profile.region"
+        :name="riotName"
+        :tag="riotTag"
+        :queue="queue"
+      />
 
       <div class="card">
         <div class="card-head">

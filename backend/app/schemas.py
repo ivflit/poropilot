@@ -80,3 +80,28 @@ class ChampionPool(BaseModel):
     total_games: int
     champions: list[ChampionStats]
     top: list[ChampionStats]
+
+
+class MatchSummary(BaseModel):
+    match_id: str
+    champion: str
+    win: bool
+    kills: int
+    deaths: int
+    assists: int
+    queue_id: int
+    duration_min: float
+
+
+class ReviewIssue(BaseModel):
+    point: str
+    stat: str
+
+
+class MatchReview(BaseModel):
+    match_id: str
+    champion: str
+    win: bool
+    verdict: str
+    issues: list[ReviewIssue]
+    tips: list[str]

@@ -91,6 +91,7 @@ onMounted(async () => {
             :pool-loading="poolLoading"
             v-model:queue="queue"
             :version="ddragonVersion"
+            :ai-enabled="aiEnabled"
           />
         </Transition>
         <DraftAssistant v-if="aiEnabled" :pool-champions="poolChampionNames" />

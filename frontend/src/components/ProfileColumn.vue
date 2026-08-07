@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import ReviewPanel from "./ReviewPanel.vue";
 import MatchHistory from "./MatchHistory.vue";
 import { useChampions } from "../composables/useChampions";
@@ -77,6 +77,15 @@ const barColor = (p) => (p >= 50 ? "var(--good)" : "var(--gold)");
 
 const riotName = computed(() => props.profile?.riot_id?.split("#")[0] ?? "");
 const riotTag = computed(() => props.profile?.riot_id?.split("#")[1] ?? "");
+
+const showAllChamps = ref(false);
+const displayedChamps = computed(() => {
+  if (!props.pool) return [];
+  return showAllChamps.value ? props.pool.champions : props.pool.top;
+});
+const hasMoreChamps = computed(() =>
+  props.pool && props.pool.champions.length > props.pool.top.length,
+);
 </script>
 
 <template>
@@ -138,24 +147,34 @@ const riotTag = computed(() => props.profile?.riot_id?.split("#")[1] ?? "");
             No games in {{ queueName }} — try another filter.
           </p>
 
-          <ul v-else key="list" class="pool">
-            <li v-for="c in pool.top" :key="c.champion_id" class="f-row">
-              <img class="f-icon" :src="championIcon(c.champion_id)" :alt="c.champion_name" />
-              <div class="f-main">
-                <div class="f-top">
-                  <span class="f-name">{{ c.champion_name }}</span>
-                  <span class="f-wg">{{ c.wins }}W · {{ c.games }}g</span>
+          <div v-else key="list">
+            <ul class="pool">
+              <li v-for="c in displayedChamps" :key="c.champion_id" class="f-row">
+                <img class="f-icon" :src="championIcon(c.champion_id)" :alt="c.champion_name" />
+                <div class="f-main">
+                  <div class="f-top">
+                    <span class="f-name">{{ c.champion_name }}</span>
+                    <span class="f-wg">{{ c.games }}g · {{ c.avg_kda.toFixed(1) }} KDA</span>
+                  </div>
+                  <div class="bar">
+                    <div
+                      class="bar-fill"
+                      :style="{ width: pct(c.win_rate) + '%', background: barColor(pct(c.win_rate)) }"
+                    ></div>
+                  </div>
                 </div>
-                <div class="bar">
-                  <div
-                    class="bar-fill"
-                    :style="{ width: pct(c.win_rate) + '%', background: barColor(pct(c.win_rate)) }"
-                  ></div>
-                </div>
-              </div>
-              <div class="f-pct" :style="{ color: barColor(pct(c.win_rate)) }">{{ pct(c.win_rate) }}%</div>
-            </li>
-          </ul>
+                <div class="f-pct" :style="{ color: barColor(pct(c.win_rate)) }">{{ pct(c.win_rate) }}%</div>
+              </li>
+            </ul>
+            <button
+              v-if="hasMoreChamps"
+              type="button"
+              class="show-all-btn"
+              @click="showAllChamps = !showAllChamps"
+            >
+              {{ showAllChamps ? "Show top 5" : `Show all ${pool.champions.length}` }}
+            </button>
+          </div>
         </Transition>
       </div>
 

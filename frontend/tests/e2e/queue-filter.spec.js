@@ -69,7 +69,7 @@ test("switching to ranked solo re-reads the champion pool for that queue", async
 
   const pool = page.locator(".pool");
   await expect(pool).toContainText("50%"); // 2 of 4 in solo — the honest number
-  await expect(pool).toContainText("2W · 4g");
+  await expect(pool).toContainText("4g");
 });
 
 test("switching to flex shows that queue's champions and rank", async ({ page }) => {

@@ -5,7 +5,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from app.ai.provider import ai_enabled, patch_digest, review_match, suggest_pick
+from app.ai.provider import ai_enabled, generate_tier_list, patch_digest, review_match, suggest_pick
 from app.ai.review import derive_stats, is_ranked
 from app.cache import cache
 from app.config import settings
@@ -35,6 +35,7 @@ from app.schemas import (
     MultiSearchResponse,
     PatchDigest,
     Profile,
+    TierListResponse,
 )
 
 router = APIRouter(prefix="/api", tags=["poropilot"])
@@ -216,6 +217,23 @@ async def get_patch_digest(
     result = await asyncio.to_thread(patch_digest, champions, version)
     await cache.set(key, result, ttl=86400)  # stable for the life of a patch
     return PatchDigest(**result)
+
+
+@router.get("/tier-list", response_model=TierListResponse, dependencies=[Depends(require_ai)])
+async def get_tier_list(
+    role: Annotated[str, Query(description="Role: TOP, JUNGLE, MID, ADC, SUPPORT")],
+    version: Annotated[str, Depends(get_ddragon_version)],
+) -> TierListResponse:
+    """AI-generated champion tier list for a role in the current patch."""
+    role_upper = role.upper()
+    key = f"tier-list:{version}:{role_upper}"
+    cached = await cache.get(key)
+    if cached is not None:
+        return TierListResponse(**cached)
+    result = await asyncio.to_thread(generate_tier_list, role_upper, version)
+    response = {"role": role_upper, "patch": version, "tiers": result.get("tiers", [])}
+    await cache.set(key, response, ttl=86400)
+    return TierListResponse(**response)
 
 
 @router.post("/draft", response_model=DraftResponse, dependencies=[Depends(require_ai)])

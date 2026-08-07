@@ -16,7 +16,7 @@ T17 (accounts)      ── blocks ──▶ T18 (saved pools), T20 (AI review)
 T19 (match filter)  ── blocks ──▶ T20 (AI post-game review), T21 (filter layout), T22 (match history)
 ```
 
-T1–T15, T17–T29 are done. T16 awaits deploy accounts.
+T1–T15, T17–T29 are done. T16 awaits deploy accounts. All future features complete.
 
 ---
 
@@ -419,3 +419,14 @@ in the project, so do it first and do it properly.
   - [x] Frontend: LiveGame card in the profile column showing Blue/Red teams with
         champion icons, summoner names, and rank. Refresh button. "Not in game" state.
   - [x] Tests: 4 backend route tests; 4 Playwright tests.
+
+### T29 — Champion tier list: AI-generated role tier rankings
+- **Priority:** p2 · **Area:** backend + frontend · **Depends on:** — · **Ralph:** no
+- **Why:** Players want to know which champions are strong in the current meta by role.
+- **Acceptance criteria**
+  - [x] `GET /api/tier-list?role=...` returns AI-generated S/A/B/C tier rankings.
+  - [x] Cached per patch + role (86400s).
+  - [x] Returns 503 when AI is disabled.
+  - [x] Frontend: TierList card with role selector, tier badges with champion icons and reasons.
+  - [x] Hidden when AI is disabled.
+  - [x] Tests: 4 backend tests; 4 Playwright tests.

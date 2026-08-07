@@ -5,7 +5,7 @@ backend clients are constructed lazily (only when a call is made), so importing
 this module never requires an API key.
 """
 
-from app.ai import draft, gemini, review
+from app.ai import draft, gemini, review, tierlist
 from app.ai import patch as anthropic_patch
 from app.config import settings
 
@@ -62,3 +62,9 @@ def review_match(stats: dict) -> dict:
     if active_provider() == "gemini":
         return review.review_match_gemini(stats)
     return review.review_match_anthropic(stats)
+
+
+def generate_tier_list(role: str, patch: str) -> dict:
+    if active_provider() == "gemini":
+        return tierlist.tier_list_gemini(role, patch)
+    return tierlist.tier_list_anthropic(role, patch)

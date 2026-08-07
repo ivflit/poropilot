@@ -173,10 +173,19 @@ def _format_stats(stats: dict) -> str:
     return "\n".join(lines)
 
 
-def review_match_anthropic(stats: dict) -> dict:
-    import anthropic
+_anthropic_client = None
 
-    client = anthropic.Anthropic()
+
+def _get_anthropic():
+    global _anthropic_client
+    if _anthropic_client is None:
+        import anthropic
+        _anthropic_client = anthropic.Anthropic()
+    return _anthropic_client
+
+
+def review_match_anthropic(stats: dict) -> dict:
+    client = _get_anthropic()
     resp = client.messages.create(
         model=settings.anthropic_model,
         max_tokens=1024,

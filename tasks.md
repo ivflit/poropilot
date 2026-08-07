@@ -16,7 +16,7 @@ T17 (accounts)      ── blocks ──▶ T18 (saved pools), T20 (AI review)
 T19 (match filter)  ── blocks ──▶ T20 (AI post-game review), T21 (filter layout), T22 (match history)
 ```
 
-T1–T15, T17–T24 are done. T16 awaits deploy accounts.
+T1–T15, T17–T25 are done. T16 awaits deploy accounts.
 
 ---
 
@@ -374,3 +374,16 @@ in the project, so do it first and do it properly.
   - [x] Recent form card shows all champions with a "Show all N" toggle (default top 5).
   - [x] Each row shows games count and KDA alongside the win-rate bar.
   - [x] Tests: 2 Playwright tests (win-rate + KDA display, show-all toggle).
+
+### T25 — Multi-search: look up a lobby of summoners at once
+- **Priority:** p2 · **Area:** backend + frontend · **Depends on:** — · **Ralph:** no
+- **Why:** In champ select, you want to quickly see all 5 teammates' ranks and recent
+  form. Op.gg's multi-search lets you paste the lobby and see everyone at a glance.
+- **Acceptance criteria**
+  - [x] `POST /api/multi-search` accepts a region and list of Riot IDs; returns
+        profiles + top 3 champions for each, in parallel.
+  - [x] Capped at 5 players per request.
+  - [x] Unknown summoners returned as `found: false` (not an error).
+  - [x] Frontend: multi-search panel with paste-friendly textarea, region selector,
+        per-player cards showing rank badge, win%, top 3 champions with win-rates.
+  - [x] Tests: 7 backend route tests; 5 Playwright tests.

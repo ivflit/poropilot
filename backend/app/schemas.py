@@ -135,6 +135,25 @@ class MatchHistoryResponse(BaseModel):
     aggregate: AggregateStats
 
 
+class MultiSearchRequest(BaseModel):
+    region: str
+    riot_ids: list[str]  # ["name#tag", ...]
+
+
+class MultiSearchPlayer(BaseModel):
+    riot_id: str
+    found: bool
+    region: str | None = None
+    level: int | None = None
+    profile_icon_id: int | None = None
+    ranked: list[dict] = []
+    top_champions: list[ChampionStats] = []
+
+
+class MultiSearchResponse(BaseModel):
+    players: list[MultiSearchPlayer]
+
+
 class ReviewIssue(BaseModel):
     point: str
     stat: str

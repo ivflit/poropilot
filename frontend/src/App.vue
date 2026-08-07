@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import ProfileColumn from "./components/ProfileColumn.vue";
 import DraftAssistant from "./components/DraftAssistant.vue";
+import MultiSearch from "./components/MultiSearch.vue";
 import AuthModal from "./components/AuthModal.vue";
 import { useSummoner } from "./composables/useSummoner";
 import { useConfig } from "./composables/useConfig";
@@ -94,7 +95,10 @@ onMounted(async () => {
             :ai-enabled="aiEnabled"
           />
         </Transition>
-        <DraftAssistant v-if="aiEnabled" :pool-champions="poolChampionNames" />
+        <div class="right-col">
+          <DraftAssistant v-if="aiEnabled" :pool-champions="poolChampionNames" />
+          <MultiSearch :version="ddragonVersion" />
+        </div>
       </div>
 
       <footer class="site-footer">

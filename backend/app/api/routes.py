@@ -17,7 +17,7 @@ from app.dependencies import (
 )
 from app.riot.client import RiotAPIError, RiotClient, load_profile
 from app.riot.history import MatchResult, MatchRole, MatchSort, build_match_detail, compute_aggregate
-from app.riot.matches import fetch_recent_matches, load_pool_for_riot_id
+from app.riot.matches import analyse_champion_pool, fetch_recent_matches, load_pool_for_riot_id
 from app.riot.queues import MatchQueue
 from app.riot.regions import PLATFORMS, UnknownRegionError
 from app.schemas import (
@@ -28,6 +28,9 @@ from app.schemas import (
     MatchHistoryResponse,
     MatchReview,
     MatchSummary,
+    MultiSearchPlayer,
+    MultiSearchRequest,
+    MultiSearchResponse,
     PatchDigest,
     Profile,
 )
@@ -88,6 +91,51 @@ async def get_pool(
     except RiotAPIError as exc:
         status = 404 if exc.status_code == 404 else 502
         raise HTTPException(status_code=status, detail=str(exc)) from exc
+
+
+@router.post("/multi-search", response_model=MultiSearchResponse)
+async def multi_search(
+    req: MultiSearchRequest,
+    client: Annotated[RiotClient, Depends(get_riot_client)],
+) -> MultiSearchResponse:
+    """Look up multiple summoners in parallel — for champ-select lobby scouting."""
+    from app.riot.regions import platform_host, regional_route
+
+    try:
+        platform = platform_host(req.region)
+        cluster = regional_route(platform)
+    except UnknownRegionError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    # Cap at 5 to keep it sane.
+    riot_ids = req.riot_ids[:5]
+
+    async def lookup_one(riot_id: str) -> MultiSearchPlayer:
+        if "#" not in riot_id:
+            return MultiSearchPlayer(riot_id=riot_id, found=False)
+        name, tag = riot_id.split("#", 1)
+        try:
+            account = await client.account_by_riot_id(cluster, name.strip(), tag.strip())
+            puuid = account["puuid"]
+            summoner = await client.summoner_by_puuid(platform, puuid)
+            entries = await client.league_entries(platform, puuid)
+            pool = await analyse_champion_pool(
+                client, req.region, puuid, count=10, top=3,
+            )
+            return MultiSearchPlayer(
+                riot_id=f"{account['gameName']}#{account['tagLine']}",
+                found=True,
+                region=req.region.upper(),
+                level=summoner.get("summonerLevel"),
+                profile_icon_id=summoner.get("profileIconId"),
+                ranked=entries,
+                top_champions=pool.top,
+            )
+        except RiotAPIError:
+            return MultiSearchPlayer(riot_id=riot_id, found=False)
+
+    players = await asyncio.gather(*(lookup_one(rid) for rid in riot_ids))
+    return MultiSearchResponse(players=list(players))
 
 
 @router.get("/patch-digest", response_model=PatchDigest, dependencies=[Depends(require_ai)])

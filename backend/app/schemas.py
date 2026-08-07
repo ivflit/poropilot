@@ -160,6 +160,22 @@ class MultiSearchResponse(BaseModel):
     players: list[MultiSearchPlayer]
 
 
+class TierChampion(BaseModel):
+    name: str
+    reason: str
+
+
+class TierEntry(BaseModel):
+    tier: str  # S, A, B, C
+    champions: list[TierChampion]
+
+
+class TierListResponse(BaseModel):
+    role: str
+    patch: str
+    tiers: list[TierEntry]
+
+
 class LiveGameParticipant(BaseModel):
     champion_id: int
     champion_name: str

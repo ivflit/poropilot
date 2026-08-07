@@ -19,9 +19,13 @@ test.beforeEach(async ({ page }) => {
 test("suggests a pick from the draft board when AI is enabled", async ({ page }) => {
   await page.route("**/api/config", (route) => route.fulfill({ json: { ai_enabled: true } }));
   await page.route("**/api/draft", (route) => route.fulfill({ json: SUGGESTIONS }));
+  await page.route("**/api/tier-list**", (route) =>
+    route.fulfill({ json: { role: "MID", patch: "14.1.1", tiers: [] } }),
+  );
   await page.goto("/");
 
-  await page.getByRole("button", { name: "MID" }).click();
+  const draft = page.locator(".draft");
+  await draft.getByRole("button", { name: "MID" }).click();
   await page.getByLabel("Your champion pool").fill("Ahri");
   await page.getByRole("button", { name: "Ahri" }).click();
   await page.getByRole("button", { name: "Suggest a pick" }).click();

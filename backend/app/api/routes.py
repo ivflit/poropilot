@@ -220,6 +220,8 @@ async def get_match_history(
     role: Annotated[MatchRole, Query(description="Filter by role")] = MatchRole.ALL,
     result: Annotated[MatchResult, Query(description="Filter by W/L")] = MatchResult.ALL,
     sort: Annotated[MatchSort, Query(description="Sort order")] = MatchSort.NEWEST,
+    champion: Annotated[str | None, Query(description="Filter by champion name")] = None,
+    opponent: Annotated[str | None, Query(description="Filter by opponent champion")] = None,
 ) -> MatchHistoryResponse:
     """Rich match history with filtering and sorting."""
     try:
@@ -249,6 +251,10 @@ async def get_match_history(
         if result == MatchResult.WIN and not detail.win:
             continue
         if result == MatchResult.LOSS and detail.win:
+            continue
+        if champion and detail.champion.lower() != champion.lower():
+            continue
+        if opponent and detail.opponent_champion.lower() != opponent.lower():
             continue
         details.append(detail)
 

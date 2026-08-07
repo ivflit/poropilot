@@ -16,7 +16,7 @@ T17 (accounts)      ── blocks ──▶ T18 (saved pools), T20 (AI review)
 T19 (match filter)  ── blocks ──▶ T20 (AI post-game review), T21 (filter layout), T22 (match history)
 ```
 
-T1–T15, T17–T26 are done. T16 awaits deploy accounts.
+T1–T15, T17–T27 are done. T16 awaits deploy accounts.
 
 ---
 
@@ -396,3 +396,14 @@ in the project, so do it first and do it properly.
   - [x] `MatchParticipant` enriched with kills, deaths, assists, cs, damage, gold.
   - [x] Expanded match row shows a two-column layout (Blue/Red team) with per-player stats.
   - [x] Tests: 1 backend unit test for participant stats; 1 Playwright test for expanded detail.
+
+### T27 — Advanced match history filters: champion and opponent
+- **Priority:** p2 · **Area:** backend + frontend · **Depends on:** T22 · **Ralph:** no
+- **Why:** Stat sites like shok.lol have advanced filters for narrowing match history by
+  champion played and opponent faced.
+- **Acceptance criteria**
+  - [x] `/api/history/` accepts `champion` and `opponent` query params (case-insensitive).
+  - [x] Frontend: collapsible "Filters" toggle revealing champion and opponent text inputs.
+  - [x] Reset button clears both filters.
+  - [x] Tests: 3 backend route tests (champion, opponent, case-insensitive);
+        1 Playwright test for the advanced filter.

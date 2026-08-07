@@ -81,8 +81,14 @@ test.beforeEach(async ({ page }) => {
     const url = new URL(route.request().url());
     const role = url.searchParams.get("role");
     const result = url.searchParams.get("result");
+    const champ = url.searchParams.get("champion");
     if (role === "JUNGLE") return route.fulfill({ json: FILTERED_JUNGLE });
     if (result === "win") return route.fulfill({ json: FILTERED_WINS });
+    if (champ) {
+      const filtered = HISTORY.matches.filter((m) => m.champion.toLowerCase() === champ.toLowerCase());
+      const agg = { wins: filtered.filter((m) => m.win).length, losses: filtered.filter((m) => !m.win).length, win_rate: 1, avg_kills: 0, avg_deaths: 0, avg_assists: 0, kda_ratio: 0 };
+      return route.fulfill({ json: { matches: filtered, total_fetched: filtered.length, aggregate: agg } });
+    }
     return route.fulfill({ json: HISTORY });
   });
 });
@@ -162,6 +168,16 @@ test("aggregate stats card shows W/L, win%, and KDA", async ({ page }) => {
   await expect(agg).toContainText("67%");
   await expect(agg).toContainText("5.31 KDA");
   await expect(agg).toContainText("3 games");
+});
+
+test("advanced champion filter narrows results", async ({ page }) => {
+  await searchPlayer(page);
+  const card = page.locator(".history-card");
+  await card.locator(".adv-toggle").click();
+  await card.locator(".adv-input").first().fill("Ahri");
+  await card.locator(".adv-input").first().press("Enter");
+  await expect(card.locator(".history-row")).toHaveCount(1);
+  await expect(card).toContainText("Ahri");
 });
 
 test("win and loss results are visually distinct", async ({ page }) => {

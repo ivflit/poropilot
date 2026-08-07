@@ -230,6 +230,22 @@ class HistoryRouteTests(unittest.TestCase):
         r = self._get(result="draw")
         self.assertEqual(r.status_code, 422)
 
+    def test_filter_by_champion(self):
+        r = self._get(champion="Ahri")
+        matches = r.json()["matches"]
+        self.assertEqual(len(matches), 1)
+        self.assertEqual(matches[0]["champion"], "Ahri")
+
+    def test_filter_by_opponent(self):
+        r = self._get(opponent="Zed")
+        matches = r.json()["matches"]
+        self.assertEqual(len(matches), 1)
+        self.assertEqual(matches[0]["opponent_champion"], "Zed")
+
+    def test_champion_filter_case_insensitive(self):
+        r = self._get(champion="ahri")
+        self.assertEqual(len(r.json()["matches"]), 1)
+
     def test_total_fetched_reflects_post_filter_count(self):
         r = self._get(role="JUNGLE")
         data = r.json()

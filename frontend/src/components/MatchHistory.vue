@@ -21,6 +21,9 @@ const loadingMore = ref(false);
 const role = ref("all");
 const result = ref("all");
 const sort = ref("newest");
+const championFilter = ref("");
+const opponentFilter = ref("");
+const showAdvanced = ref(false);
 const expanded = ref(null);
 
 const ROLES = [
@@ -74,6 +77,8 @@ function buildPath() {
   params.set("role", role.value);
   params.set("result", result.value);
   params.set("sort", sort.value);
+  if (championFilter.value.trim()) params.set("champion", championFilter.value.trim());
+  if (opponentFilter.value.trim()) params.set("opponent", opponentFilter.value.trim());
   return `${base}?${params}`;
 }
 
@@ -125,7 +130,7 @@ const RING_C = 2 * Math.PI * RING_R;
 const ringOffset = computed(() => RING_C - (RING_C * winPct.value) / 100);
 
 watch(() => [props.region, props.name, props.tag, props.queue], loadMatches, { immediate: true });
-watch([role, result, sort], loadMatches);
+watch([role, result, sort, championFilter, opponentFilter], loadMatches);
 </script>
 
 <template>
@@ -162,6 +167,28 @@ watch([role, result, sort], loadMatches);
       <select v-model="sort" class="sort-select" aria-label="Sort order">
         <option v-for="s in SORTS" :key="s.value" :value="s.value">{{ s.label }}</option>
       </select>
+      <button type="button" class="adv-toggle" @click="showAdvanced = !showAdvanced">
+        {{ showAdvanced ? "Hide filters" : "Filters" }}
+      </button>
+    </div>
+
+    <div v-if="showAdvanced" class="adv-filters">
+      <div class="adv-field">
+        <label class="adv-label">Champion</label>
+        <input v-model.lazy="championFilter" class="adv-input" placeholder="e.g. Ahri" />
+      </div>
+      <div class="adv-field">
+        <label class="adv-label">Opponent</label>
+        <input v-model.lazy="opponentFilter" class="adv-input" placeholder="e.g. Zed" />
+      </div>
+      <button
+        v-if="championFilter || opponentFilter"
+        type="button"
+        class="adv-reset"
+        @click="championFilter = ''; opponentFilter = ''"
+      >
+        Reset
+      </button>
     </div>
 
     <div v-if="aggregate && (aggregate.wins + aggregate.losses) > 0" class="agg-card">

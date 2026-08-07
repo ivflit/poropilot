@@ -16,7 +16,7 @@ T17 (accounts)      ── blocks ──▶ T18 (saved pools), T20 (AI review)
 T19 (match filter)  ── blocks ──▶ T20 (AI post-game review), T21 (filter layout), T22 (match history)
 ```
 
-T1–T15, T17–T22 are done. T16 awaits deploy accounts.
+T1–T15, T17–T23 are done. T16 awaits deploy accounts.
 
 ---
 
@@ -351,3 +351,17 @@ in the project, so do it first and do it properly.
   - [x] Clicking a match row expands to show all 10 participants split by team (blue/red).
   - [x] Tests: 9 unit tests for `build_match_detail`, 12 route tests for filtering/sorting/
         pagination; 7 Playwright tests cover the UI.
+
+### T23 — Aggregate stats card: overall W/L, win%, KDA ratio
+- **Priority:** p2 · **Area:** backend + frontend · **Depends on:** T22 · **Ralph:** no
+- **Why:** The profile shows rank and champion pool but no overall match stats. Every stat
+  site shows total W/L, overall win%, and average KDA prominently.
+- **Acceptance criteria**
+  - [x] `/api/history/` response includes `aggregate` object: wins, losses, win_rate,
+        avg_kills, avg_deaths, avg_assists, kda_ratio.
+  - [x] Frontend: aggregate stats card with W/L record, win% SVG ring chart, avg KDA per
+        game, KDA ratio. Deaths highlighted in error colour.
+  - [x] Aggregate responds to role/result filters (computed over all filtered matches, not
+        just the current page).
+  - [x] Tests: 3 unit tests for `compute_aggregate`, 3 route tests for aggregate in the
+        response; 1 Playwright test for the card.

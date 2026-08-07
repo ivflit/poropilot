@@ -22,6 +22,7 @@ const now = Math.floor(Date.now() / 1000);
 
 const HISTORY = {
   total_fetched: 3,
+  aggregate: { wins: 2, losses: 1, win_rate: 0.6667, avg_kills: 7.7, avg_deaths: 4.3, avg_assists: 9.7, kda_ratio: 5.31 },
   matches: [
     {
       match_id: "EUW1_001", champion: "Ahri", win: true, kills: 8, deaths: 2, assists: 10,
@@ -57,11 +58,13 @@ const HISTORY = {
 
 const FILTERED_JUNGLE = {
   total_fetched: 1,
+  aggregate: { wins: 1, losses: 0, win_rate: 1.0, avg_kills: 12, avg_deaths: 4, avg_assists: 15, kda_ratio: 6.75 },
   matches: [HISTORY.matches[2]],
 };
 
 const FILTERED_WINS = {
   total_fetched: 2,
+  aggregate: { wins: 2, losses: 0, win_rate: 1.0, avg_kills: 10, avg_deaths: 3, avg_assists: 12.5, kda_ratio: 7.33 },
   matches: [HISTORY.matches[0], HISTORY.matches[2]],
 };
 
@@ -136,6 +139,16 @@ test("result filter shows only wins", async ({ page }) => {
   const card = page.locator(".history-card");
   await card.getByRole("button", { name: "W" }).click();
   await expect(card.locator(".history-row")).toHaveCount(2);
+});
+
+test("aggregate stats card shows W/L, win%, and KDA", async ({ page }) => {
+  await searchPlayer(page);
+  const agg = page.locator(".agg-card");
+  await expect(agg).toBeVisible();
+  await expect(agg).toContainText("2W 1L");
+  await expect(agg).toContainText("67%");
+  await expect(agg).toContainText("5.31 KDA");
+  await expect(agg).toContainText("3 games");
 });
 
 test("win and loss results are visually distinct", async ({ page }) => {

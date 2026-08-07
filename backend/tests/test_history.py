@@ -9,7 +9,7 @@ from app.cache import cache
 from app.dependencies import get_riot_client
 from app.main import app
 from app.riot.client import RiotClient
-from app.riot.history import build_match_detail
+from app.riot.history import build_match_detail, compute_aggregate
 
 PUUID = "player-1"
 SOLO_QUEUE = 420
@@ -223,6 +223,50 @@ class HistoryRouteTests(unittest.TestCase):
         r = self._get(role="JUNGLE")
         data = r.json()
         self.assertEqual(data["total_fetched"], 1)
+
+    def test_aggregate_stats_included(self):
+        r = self._get()
+        agg = r.json()["aggregate"]
+        self.assertEqual(agg["wins"], 2)
+        self.assertEqual(agg["losses"], 1)
+        self.assertAlmostEqual(agg["win_rate"], 0.6667, places=3)
+
+    def test_aggregate_kda_ratio(self):
+        r = self._get()
+        agg = r.json()["aggregate"]
+        # Total: kills=3+3+3=9, deaths=2+2+2=6, assists=7+7+7=21
+        # KDA = (9+21)/6 = 5.0
+        self.assertEqual(agg["kda_ratio"], 5.0)
+
+    def test_aggregate_reflects_filters(self):
+        r = self._get(result="win")
+        agg = r.json()["aggregate"]
+        self.assertEqual(agg["wins"], 2)
+        self.assertEqual(agg["losses"], 0)
+        self.assertEqual(agg["win_rate"], 1.0)
+
+
+class ComputeAggregateTests(unittest.TestCase):
+    def test_empty_list(self):
+        agg = compute_aggregate([])
+        self.assertEqual(agg.wins, 0)
+        self.assertEqual(agg.losses, 0)
+        self.assertEqual(agg.kda_ratio, 0)
+
+    def test_single_match(self):
+        m = _match("M1", kills=10, deaths=2, assists=5)
+        d = build_match_detail(m, PUUID)
+        agg = compute_aggregate([d])
+        self.assertEqual(agg.wins, 1)
+        self.assertEqual(agg.losses, 0)
+        self.assertEqual(agg.avg_kills, 10)
+        self.assertEqual(agg.kda_ratio, 7.5)  # (10+5)/2
+
+    def test_zero_deaths(self):
+        m = _match("M1", kills=5, deaths=0, assists=3)
+        d = build_match_detail(m, PUUID)
+        agg = compute_aggregate([d])
+        self.assertEqual(agg.kda_ratio, 8.0)  # (5+3)/1 (floored)
 
 
 if __name__ == "__main__":

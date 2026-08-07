@@ -13,6 +13,7 @@ const props = defineProps({
 const { lookupName } = useChampions();
 
 const matches = ref([]);
+const aggregate = ref(null);
 const loading = ref(false);
 const totalFetched = ref(0);
 const loadingMore = ref(false);
@@ -79,10 +80,12 @@ function buildPath() {
 async function loadMatches() {
   loading.value = true;
   matches.value = [];
+  aggregate.value = null;
   expanded.value = null;
   try {
     const data = await apiGet(`${buildPath()}&count=20&start=0`);
     matches.value = data.matches;
+    aggregate.value = data.aggregate;
     totalFetched.value = data.total_fetched;
   } catch {
     matches.value = [];
@@ -113,6 +116,13 @@ function toggleExpand(matchId) {
 function team(participants, teamId) {
   return participants.filter((p) => p.team_id === teamId);
 }
+
+const winPct = computed(() => aggregate.value ? Math.round(aggregate.value.win_rate * 100) : 0);
+
+// SVG ring parameters.
+const RING_R = 36;
+const RING_C = 2 * Math.PI * RING_R;
+const ringOffset = computed(() => RING_C - (RING_C * winPct.value) / 100);
 
 watch(() => [props.region, props.name, props.tag, props.queue], loadMatches, { immediate: true });
 watch([role, result, sort], loadMatches);
@@ -152,6 +162,28 @@ watch([role, result, sort], loadMatches);
       <select v-model="sort" class="sort-select" aria-label="Sort order">
         <option v-for="s in SORTS" :key="s.value" :value="s.value">{{ s.label }}</option>
       </select>
+    </div>
+
+    <div v-if="aggregate && (aggregate.wins + aggregate.losses) > 0" class="agg-card">
+      <div class="agg-ring-wrap">
+        <svg class="agg-ring" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" :r="RING_R" class="agg-ring-bg" />
+          <circle
+            cx="40" cy="40" :r="RING_R" class="agg-ring-fill"
+            :stroke-dasharray="RING_C" :stroke-dashoffset="ringOffset"
+            :style="{ stroke: winPct >= 50 ? 'var(--good)' : 'var(--gold)' }"
+          />
+        </svg>
+        <span class="agg-ring-pct" :style="{ color: winPct >= 50 ? 'var(--good)' : 'var(--gold)' }">{{ winPct }}%</span>
+      </div>
+      <div class="agg-wl">
+        <span class="agg-record">{{ aggregate.wins }}W {{ aggregate.losses }}L</span>
+        <span class="agg-games">{{ aggregate.wins + aggregate.losses }} games</span>
+      </div>
+      <div class="agg-kda">
+        <span class="agg-kda-avg">{{ aggregate.avg_kills }} / <span class="agg-deaths">{{ aggregate.avg_deaths }}</span> / {{ aggregate.avg_assists }}</span>
+        <span class="agg-kda-ratio">{{ aggregate.kda_ratio }} KDA</span>
+      </div>
     </div>
 
     <p v-if="loading" class="pool-note">Loading match history…</p>

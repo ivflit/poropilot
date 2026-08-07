@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import ReviewPanel from "./ReviewPanel.vue";
 import MatchHistory from "./MatchHistory.vue";
+import LiveGame from "./LiveGame.vue";
 import { useChampions } from "../composables/useChampions";
 
 const QUEUES = [
@@ -121,6 +122,14 @@ const hasMoreChamps = computed(() =>
           <div v-else class="rank-row rank-unranked">Unranked in {{ queueName }}</div>
         </div>
       </div>
+
+      <LiveGame
+        v-if="riotName"
+        :region="profile.region"
+        :name="riotName"
+        :tag="riotTag"
+        :version="version"
+      />
 
       <div class="card">
         <div class="card-head">

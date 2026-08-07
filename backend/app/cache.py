@@ -6,6 +6,7 @@ active. Values must be JSON-serialisable (Riot API responses are).
 
 import json
 import time
+from typing import Any
 
 from app.config import settings
 
@@ -17,7 +18,7 @@ class InMemoryCache:
         self.default_ttl = default_ttl
         self._store: dict[str, tuple] = {}
 
-    async def get(self, key: str):
+    async def get(self, key: str) -> Any | None:
         item = self._store.get(key)
         if item is None:
             return None
@@ -27,7 +28,7 @@ class InMemoryCache:
             return None
         return value
 
-    async def set(self, key: str, value, ttl: int | None = None) -> None:
+    async def set(self, key: str, value: Any, ttl: int | None = None) -> None:
         self._store[key] = (value, time.monotonic() + (ttl or self.default_ttl))
 
 
@@ -42,11 +43,11 @@ class RedisCache:
         self._redis = client
         self.default_ttl = default_ttl
 
-    async def get(self, key: str):
+    async def get(self, key: str) -> Any | None:
         raw = await self._redis.get(key)
         return json.loads(raw) if raw is not None else None
 
-    async def set(self, key: str, value, ttl: int | None = None) -> None:
+    async def set(self, key: str, value: Any, ttl: int | None = None) -> None:
         await self._redis.set(key, json.dumps(value), ex=ttl or self.default_ttl)
 
 

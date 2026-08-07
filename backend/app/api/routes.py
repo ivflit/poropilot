@@ -124,30 +124,32 @@ async def get_live_game(
             return LiveGameResponse(in_game=False)
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
+    # Fetch all participant ranks in parallel (not N+1 serial).
+    raw_participants = game.get("participants", [])
+
+    async def _rank_for(p_puuid: str | None) -> str | None:
+        if not p_puuid:
+            return None
+        try:
+            entries = await client.league_entries(platform, p_puuid)
+            solo = next((e for e in entries if e.get("queueType") == "RANKED_SOLO_5x5"), None)
+            if solo:
+                return f"{solo['tier']} {solo['rank']} {solo['leaguePoints']} LP"
+        except RiotAPIError:
+            pass
+        return None
+
+    ranks = await asyncio.gather(*(_rank_for(p.get("puuid")) for p in raw_participants))
+
     participants = []
-    for p in game.get("participants", []):
+    for p, rank_str in zip(raw_participants, ranks, strict=True):
         champ_id = p.get("championId", 0)
         champ_info = champions.get(champ_id)
-        champ_name = champ_info.name if champ_info else f"Champion {champ_id}"
-        riot_id = p.get("riotId", "") or p.get("summonerName", "Unknown")
-
-        # Try to get rank for each participant.
-        rank_str = None
-        p_puuid = p.get("puuid")
-        if p_puuid:
-            try:
-                entries = await client.league_entries(platform, p_puuid)
-                solo = next((e for e in entries if e.get("queueType") == "RANKED_SOLO_5x5"), None)
-                if solo:
-                    rank_str = f"{solo['tier']} {solo['rank']} {solo['leaguePoints']} LP"
-            except RiotAPIError:
-                pass
-
         participants.append(LiveGameParticipant(
             champion_id=champ_id,
-            champion_name=champ_name,
+            champion_name=champ_info.name if champ_info else f"Champion {champ_id}",
             team_id=p.get("teamId", 0),
-            riot_id=riot_id,
+            riot_id=p.get("riotId", "") or p.get("summonerName", "Unknown"),
             rank=rank_str,
         ))
 
@@ -197,8 +199,10 @@ async def multi_search(
                 ranked=entries,
                 top_champions=pool.top,
             )
-        except RiotAPIError:
-            return MultiSearchPlayer(riot_id=riot_id, found=False)
+        except RiotAPIError as exc:
+            if exc.status_code == 404:
+                return MultiSearchPlayer(riot_id=riot_id, found=False)
+            return MultiSearchPlayer(riot_id=riot_id, found=False, error="Lookup failed")
 
     players = await asyncio.gather(*(lookup_one(rid) for rid in riot_ids))
     return MultiSearchResponse(players=list(players))

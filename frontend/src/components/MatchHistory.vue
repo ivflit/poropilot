@@ -17,6 +17,7 @@ const aggregate = ref(null);
 const loading = ref(false);
 const totalFetched = ref(0);
 const loadingMore = ref(false);
+const historyError = ref("");
 
 const role = ref("all");
 const result = ref("all");
@@ -87,13 +88,15 @@ async function loadMatches() {
   matches.value = [];
   aggregate.value = null;
   expanded.value = null;
+  historyError.value = "";
   try {
     const data = await apiGet(`${buildPath()}&count=20&start=0`);
     matches.value = data.matches;
     aggregate.value = data.aggregate;
     totalFetched.value = data.total_fetched;
-  } catch {
+  } catch (e) {
     matches.value = [];
+    historyError.value = e.message || "Failed to load match history";
   } finally {
     loading.value = false;
   }
@@ -214,6 +217,7 @@ watch([role, result, sort, championFilter, opponentFilter], loadMatches);
     </div>
 
     <p v-if="loading" class="pool-note">Loading match history…</p>
+    <p v-else-if="historyError" class="pool-note history-error">{{ historyError }}</p>
     <p v-else-if="!matches.length" class="pool-note">No matches found.</p>
 
     <div v-else class="history-list">

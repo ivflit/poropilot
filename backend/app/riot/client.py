@@ -37,7 +37,7 @@ class RiotClient:
         await cache.set(cache_key, data, ttl=ttl)
         return data
 
-    # --- Account-V1 (regional) ---
+    # --- Account-V1 (regional) — 1h: Riot IDs rarely change ---
     async def account_by_riot_id(self, region_cluster: str, name: str, tag: str):
         return await self._get(
             region_cluster,
@@ -46,7 +46,7 @@ class RiotClient:
             cache_key=f"acct:{region_cluster}:{name}#{tag}",
         )
 
-    # --- Summoner-V4 (platform) ---
+    # --- Summoner-V4 (platform) — 10min: level/icon change slowly ---
     async def summoner_by_puuid(self, platform: str, puuid: str):
         return await self._get(
             platform,
@@ -55,7 +55,7 @@ class RiotClient:
             cache_key=f"summ:{platform}:{puuid}",
         )
 
-    # --- League-V4 (platform) — by PUUID; Summoner-V4 no longer returns an `id` ---
+    # --- League-V4 (platform) — 5min: rank updates after each game ---
     async def league_entries(self, platform: str, puuid: str):
         return await self._get(
             platform,
@@ -64,7 +64,7 @@ class RiotClient:
             cache_key=f"league:{platform}:{puuid}",
         )
 
-    # --- Champion-Mastery-V4 (platform) ---
+    # --- Champion-Mastery-V4 (platform) — 10min: mastery changes slowly ---
     async def champion_masteries(self, platform: str, puuid: str, top: int = 10):
         return await self._get(
             platform,
@@ -73,7 +73,7 @@ class RiotClient:
             cache_key=f"mastery:{platform}:{puuid}:{top}",
         )
 
-    # --- Match-V5 (regional) ---
+    # --- Match-V5 (regional) — IDs: 2min, detail: 24h (immutable) ---
     async def match_ids(
         self,
         region_cluster: str,
@@ -93,12 +93,12 @@ class RiotClient:
             key += f":q{queue}"
         return await self._get(region_cluster, path, ttl=120, cache_key=key)
 
-    # --- Spectator-V5 (platform) ---
+    # --- Spectator-V5 (platform) — 30s: game state changes rapidly ---
     async def active_game(self, platform: str, puuid: str):
         return await self._get(
             platform,
             f"/lol/spectator/v5/active-games/by-summoner/{puuid}",
-            ttl=30,  # short TTL — game state changes rapidly
+            ttl=30,
             cache_key=f"spectator:{platform}:{puuid}",
         )
 

@@ -45,10 +45,19 @@ _SCHEMA = {
 }
 
 
-def tier_list_anthropic(role: str, patch: str) -> dict:
-    import anthropic
+_anthropic_client = None
 
-    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+
+def _get_anthropic():
+    global _anthropic_client
+    if _anthropic_client is None:
+        import anthropic
+        _anthropic_client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+    return _anthropic_client
+
+
+def tier_list_anthropic(role: str, patch: str) -> dict:
+    client = _get_anthropic()
     prompt = f"Role: {role}\nPatch: {patch}\n\nGenerate the tier list."
     response = client.messages.create(
         model="claude-sonnet-4-20250514",

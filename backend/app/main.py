@@ -27,8 +27,8 @@ async def lifespan(app: FastAPI):
     try:
         service = ChampionService(app.state.http)
         app.state.ddragon_version, app.state.champions = await service.load()
-    except Exception:
-        logger.warning("Could not load champion data on startup; will lazy-load.")
+    except (httpx.HTTPError, KeyError, ValueError) as exc:
+        logger.warning("Could not load champion data on startup (%s); will lazy-load.", exc)
 
     yield
     await app.state.http.aclose()

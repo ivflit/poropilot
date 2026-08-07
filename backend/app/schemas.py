@@ -154,6 +154,7 @@ class MultiSearchPlayer(BaseModel):
     profile_icon_id: int | None = None
     ranked: list[dict] = []
     top_champions: list[ChampionStats] = []
+    error: str | None = None  # set on transient failures (rate-limit, server error)
 
 
 class MultiSearchResponse(BaseModel):

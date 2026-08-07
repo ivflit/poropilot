@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted } from "vue";
 import ReviewPanel from "./ReviewPanel.vue";
+import MatchHistory from "./MatchHistory.vue";
 import { useChampions } from "../composables/useChampions";
 
 const QUEUES = [
@@ -160,6 +161,14 @@ const riotTag = computed(() => props.profile?.riot_id?.split("#")[1] ?? "");
 
       <ReviewPanel
         v-if="aiEnabled && riotName"
+        :region="profile.region"
+        :name="riotName"
+        :tag="riotTag"
+        :queue="queue"
+      />
+
+      <MatchHistory
+        v-if="riotName"
         :region="profile.region"
         :name="riotName"
         :tag="riotTag"

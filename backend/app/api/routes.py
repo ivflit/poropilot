@@ -16,6 +16,7 @@ from app.dependencies import (
     require_ai,
 )
 from app.riot.client import RiotAPIError, RiotClient, load_profile
+from app.riot.history import MatchResult, MatchRole, MatchSort, build_match_detail
 from app.riot.matches import fetch_recent_matches, load_pool_for_riot_id
 from app.riot.queues import MatchQueue
 from app.riot.regions import PLATFORMS, UnknownRegionError
@@ -24,6 +25,7 @@ from app.schemas import (
     ChampionPool,
     DraftRequest,
     DraftResponse,
+    MatchHistoryResponse,
     MatchReview,
     MatchSummary,
     PatchDigest,
@@ -156,6 +158,64 @@ async def get_recent_matches(
                 ))
                 break
     return summaries
+
+
+@router.get("/history/{region}/{name}/{tag}", response_model=MatchHistoryResponse)
+async def get_match_history(
+    region: str,
+    name: str,
+    tag: str,
+    client: Annotated[RiotClient, Depends(get_riot_client)],
+    queue: Annotated[MatchQueue, Query(description="Filter matches by queue")] = MatchQueue.ALL,
+    count: Annotated[int, Query(ge=1, le=50, description="Number of matches")] = 20,
+    start: Annotated[int, Query(ge=0, description="Offset for pagination")] = 0,
+    role: Annotated[MatchRole, Query(description="Filter by role")] = MatchRole.ALL,
+    result: Annotated[MatchResult, Query(description="Filter by W/L")] = MatchResult.ALL,
+    sort: Annotated[MatchSort, Query(description="Sort order")] = MatchSort.NEWEST,
+) -> MatchHistoryResponse:
+    """Rich match history with filtering and sorting."""
+    try:
+        from app.riot.regions import platform_host, regional_route
+
+        platform = platform_host(region)
+        cluster = regional_route(platform)
+        account = await client.account_by_riot_id(cluster, name, tag)
+        puuid = account["puuid"]
+    except UnknownRegionError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RiotAPIError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    # Fetch more than requested to allow for post-fetch filtering by role/result.
+    # The queue filter is applied at source by Riot, but role/result are post-fetch.
+    fetch_count = count + start + 30  # overfetch to fill the page after filtering
+    raw_matches = await fetch_recent_matches(client, region, puuid, count=fetch_count, queue=queue)
+
+    details = []
+    for m in raw_matches:
+        detail = build_match_detail(m, puuid)
+        if detail is None:
+            continue
+        if role != MatchRole.ALL and detail.role.upper() != role.value.upper():
+            continue
+        if result == MatchResult.WIN and not detail.win:
+            continue
+        if result == MatchResult.LOSS and detail.win:
+            continue
+        details.append(detail)
+
+    # Sort.
+    if sort == MatchSort.OLDEST:
+        details.sort(key=lambda d: d.game_start)
+    elif sort == MatchSort.CS_MIN:
+        details.sort(key=lambda d: d.cs_per_min, reverse=True)
+    elif sort == MatchSort.DMG_MIN:
+        details.sort(key=lambda d: d.damage_per_min, reverse=True)
+    # NEWEST is already the default order from Riot.
+
+    # Paginate.
+    page = details[start : start + count]
+    return MatchHistoryResponse(matches=page, total_fetched=len(details))
 
 
 @router.get(

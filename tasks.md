@@ -16,7 +16,7 @@ T17 (accounts)      ── blocks ──▶ T18 (saved pools), T20 (AI review)
 T19 (match filter)  ── blocks ──▶ T20 (AI post-game review), T21 (filter layout), T22 (match history)
 ```
 
-T1–T15, T17–T23 are done. T16 awaits deploy accounts.
+T1–T15, T17–T24 are done. T16 awaits deploy accounts.
 
 ---
 
@@ -365,3 +365,12 @@ in the project, so do it first and do it properly.
         just the current page).
   - [x] Tests: 3 unit tests for `compute_aggregate`, 3 route tests for aggregate in the
         response; 1 Playwright test for the card.
+
+### T24 — Enhanced champion performance: all champions with KDA
+- **Priority:** p2 · **Area:** frontend · **Depends on:** T22 · **Ralph:** no
+- **Why:** The recent form card only showed the top 5 champions. Stat sites show all
+  played champions with games count and KDA for each.
+- **Acceptance criteria**
+  - [x] Recent form card shows all champions with a "Show all N" toggle (default top 5).
+  - [x] Each row shows games count and KDA alongside the win-rate bar.
+  - [x] Tests: 2 Playwright tests (win-rate + KDA display, show-all toggle).

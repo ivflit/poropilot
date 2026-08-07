@@ -42,6 +42,9 @@ test.beforeEach(async ({ page }) => {
     const queue = new URL(route.request().url()).searchParams.get("queue") ?? "all";
     return route.fulfill({ json: POOLS[queue] });
   });
+  await page.route("**/api/history/**", (route) =>
+    route.fulfill({ json: { matches: [], total_fetched: 0 } }),
+  );
 });
 
 async function search(page) {
@@ -104,7 +107,7 @@ test("a queue with no games shows an empty state, not an error", async ({ page }
   await search(page);
   await page.getByRole("button", { name: "Ranked flex" }).click();
 
-  await expect(page.locator(".pool-note")).toContainText("No games in ranked flex");
+  await expect(page.getByText("No games in ranked flex")).toBeVisible();
   await expect(page.locator(".profile")).toContainText("Faker#KR1"); // profile stays put
 });
 

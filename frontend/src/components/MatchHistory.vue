@@ -1,0 +1,226 @@
+<script setup>
+import { ref, watch, computed } from "vue";
+import { apiGet } from "../services/api";
+import { useChampions } from "../composables/useChampions";
+
+const props = defineProps({
+  region: { type: String, required: true },
+  name: { type: String, required: true },
+  tag: { type: String, required: true },
+  queue: { type: String, default: "all" },
+});
+
+const { lookupName } = useChampions();
+
+const matches = ref([]);
+const loading = ref(false);
+const totalFetched = ref(0);
+const loadingMore = ref(false);
+
+const role = ref("all");
+const result = ref("all");
+const sort = ref("newest");
+const expanded = ref(null);
+
+const ROLES = [
+  { value: "all", label: "All" },
+  { value: "TOP", label: "Top" },
+  { value: "JUNGLE", label: "Jng" },
+  { value: "MIDDLE", label: "Mid" },
+  { value: "BOTTOM", label: "ADC" },
+  { value: "UTILITY", label: "Sup" },
+];
+
+const RESULTS = [
+  { value: "all", label: "All" },
+  { value: "win", label: "W" },
+  { value: "loss", label: "L" },
+];
+
+const SORTS = [
+  { value: "newest", label: "Newest First" },
+  { value: "oldest", label: "Oldest First" },
+  { value: "cs_min", label: "CS/Min (High)" },
+  { value: "dmg_min", label: "DMG/Min (High)" },
+];
+
+const ROLE_LABELS = {
+  TOP: "Top", JUNGLE: "Jng", MIDDLE: "Mid", BOTTOM: "ADC", UTILITY: "Sup",
+};
+
+const champIcon = (name) => lookupName(name)?.image_url ?? null;
+
+function timeAgo(epoch) {
+  const diff = Math.floor(Date.now() / 1000) - epoch;
+  if (diff < 60) return "just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return `${Math.floor(diff / 86400)}d ago`;
+}
+
+function kdaStr(m) {
+  return `${m.kills}/${m.deaths}/${m.assists}`;
+}
+
+function kdaRatio(m) {
+  return ((m.kills + m.assists) / Math.max(m.deaths, 1)).toFixed(2);
+}
+
+function buildPath() {
+  const base = `/api/history/${props.region}/${encodeURIComponent(props.name)}/${encodeURIComponent(props.tag)}`;
+  const params = new URLSearchParams();
+  params.set("queue", props.queue);
+  params.set("role", role.value);
+  params.set("result", result.value);
+  params.set("sort", sort.value);
+  return `${base}?${params}`;
+}
+
+async function loadMatches() {
+  loading.value = true;
+  matches.value = [];
+  expanded.value = null;
+  try {
+    const data = await apiGet(`${buildPath()}&count=20&start=0`);
+    matches.value = data.matches;
+    totalFetched.value = data.total_fetched;
+  } catch {
+    matches.value = [];
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function loadMore() {
+  loadingMore.value = true;
+  try {
+    const data = await apiGet(`${buildPath()}&count=10&start=${matches.value.length}`);
+    matches.value.push(...data.matches);
+    totalFetched.value = data.total_fetched;
+  } catch {
+    // silently fail
+  } finally {
+    loadingMore.value = false;
+  }
+}
+
+const canLoadMore = computed(() => matches.value.length < totalFetched.value);
+
+function toggleExpand(matchId) {
+  expanded.value = expanded.value === matchId ? null : matchId;
+}
+
+function team(participants, teamId) {
+  return participants.filter((p) => p.team_id === teamId);
+}
+
+watch(() => [props.region, props.name, props.tag, props.queue], loadMatches, { immediate: true });
+watch([role, result, sort], loadMatches);
+</script>
+
+<template>
+  <div class="card history-card">
+    <div class="card-head">
+      <h3>Match history</h3>
+    </div>
+
+    <div class="history-filters">
+      <div class="filter-group" role="group" aria-label="Filter by role">
+        <button
+          v-for="r in ROLES"
+          :key="r.value"
+          type="button"
+          class="filter-btn"
+          :class="{ active: role === r.value }"
+          @click="role = r.value"
+        >
+          {{ r.label }}
+        </button>
+      </div>
+      <div class="filter-group" role="group" aria-label="Filter by result">
+        <button
+          v-for="r in RESULTS"
+          :key="r.value"
+          type="button"
+          class="filter-btn"
+          :class="{ active: result === r.value }"
+          @click="result = r.value"
+        >
+          {{ r.label }}
+        </button>
+      </div>
+      <select v-model="sort" class="sort-select" aria-label="Sort order">
+        <option v-for="s in SORTS" :key="s.value" :value="s.value">{{ s.label }}</option>
+      </select>
+    </div>
+
+    <p v-if="loading" class="pool-note">Loading match history…</p>
+    <p v-else-if="!matches.length" class="pool-note">No matches found.</p>
+
+    <div v-else class="history-list">
+      <div
+        v-for="m in matches"
+        :key="m.match_id"
+        class="history-row"
+        :class="{ win: m.win, loss: !m.win }"
+      >
+        <button type="button" class="history-main" @click="toggleExpand(m.match_id)">
+          <div class="h-result-bar" :class="m.win ? 'bar-win' : 'bar-loss'"></div>
+          <img v-if="champIcon(m.champion)" class="h-icon" :src="champIcon(m.champion)" :alt="m.champion" />
+          <div class="h-champ-col">
+            <span class="h-champ">{{ m.champion }}</span>
+            <span class="h-role">{{ ROLE_LABELS[m.role] || m.role }}</span>
+          </div>
+          <div class="h-vs" v-if="m.opponent_champion">
+            <span class="h-vs-label">vs</span>
+            <img v-if="champIcon(m.opponent_champion)" class="h-icon-sm" :src="champIcon(m.opponent_champion)" :alt="m.opponent_champion" />
+            <span class="h-opponent">{{ m.opponent_champion }}</span>
+          </div>
+          <div class="h-kda-col">
+            <span class="h-kda">{{ kdaStr(m) }}</span>
+            <span class="h-kda-ratio">{{ kdaRatio(m) }} KDA</span>
+          </div>
+          <div class="h-stat">
+            <span class="h-stat-val">{{ m.cs }}</span>
+            <span class="h-stat-label">{{ m.cs_per_min }} CS/m</span>
+          </div>
+          <div class="h-stat">
+            <span class="h-stat-val">{{ m.damage.toLocaleString() }}</span>
+            <span class="h-stat-label">{{ Math.round(m.damage_per_min) }} DPM</span>
+          </div>
+          <div class="h-meta">
+            <span class="h-duration">{{ m.duration_min }}m</span>
+            <span class="h-ago">{{ timeAgo(m.game_start) }}</span>
+          </div>
+        </button>
+
+        <div v-if="expanded === m.match_id" class="history-detail">
+          <div class="teams-row">
+            <div class="team-col team-blue">
+              <div v-for="(p, i) in team(m.participants, 100)" :key="i" class="team-player">
+                <img v-if="champIcon(p.champion)" class="h-icon-xs" :src="champIcon(p.champion)" :alt="p.champion" />
+                <span>{{ p.champion }}</span>
+              </div>
+            </div>
+            <div class="team-col team-red">
+              <div v-for="(p, i) in team(m.participants, 200)" :key="i" class="team-player">
+                <img v-if="champIcon(p.champion)" class="h-icon-xs" :src="champIcon(p.champion)" :alt="p.champion" />
+                <span>{{ p.champion }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button
+        v-if="canLoadMore"
+        type="button"
+        class="load-more-btn"
+        :disabled="loadingMore"
+        @click="loadMore"
+      >
+        {{ loadingMore ? "Loading…" : "Load more" }}
+      </button>
+    </div>
+  </div>
+</template>

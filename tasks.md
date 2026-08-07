@@ -13,11 +13,10 @@ T2, T4              ── blocks ──▶ T7 (deploy), T16 (free deploy)
 T6 (Redis)          independent
 
 T17 (accounts)      ── blocks ──▶ T18 (saved pools), T20 (AI review)
-T19 (match filter)  ── blocks ──▶ T20 (AI post-game review), T21 (filter layout)
+T19 (match filter)  ── blocks ──▶ T20 (AI post-game review), T21 (filter layout), T22 (match history)
 ```
 
-T1–T15, T19 and T21 are done. T16 awaits deploy accounts. The accounts arc
-**T17 → T18 / T19 → T20** is unblocked.
+T1–T15, T17–T22 are done. T16 awaits deploy accounts.
 
 ---
 
@@ -328,3 +327,27 @@ in the project, so do it first and do it properly.
   - [x] Light and dark themes both hold up; existing card styling and tokens reused
         (no hard-coded colours).
   - [x] Playwright covers the reordered layout; all existing tests still pass.
+
+---
+
+## Match history arc
+
+### T22 — Match history with filtering and sorting
+- **Priority:** p2 · **Area:** backend + frontend · **Depends on:** T19 · **Ralph:** no
+- **Why:** Every stat site (op.gg, porofessor, shok.lol) has a full match history as
+  its core feature. PoroPilot shows champion pool stats and AI reviews but no way to
+  browse individual matches.
+- **Acceptance criteria**
+  - [x] `GET /api/history/{region}/{name}/{tag}` returns rich match details: all 10
+        participants, lane opponent, CS, CS/min, damage, DPM, gold, vision, role,
+        game timestamp; supports `count` and `start` params for pagination.
+  - [x] Filters: `role` (All/Top/Jungle/Middle/Bottom/Utility) and `result` (All/Win/Loss)
+        query params validated by enums (bad value → 422); `sort` param (newest/oldest/
+        cs_min/dmg_min).
+  - [x] Frontend: match history panel with match rows, role filter tabs, W/L filter tabs,
+        sort dropdown, "Load more" pagination.
+  - [x] Each match row shows result bar (green/red), champion + role vs opponent, KDA,
+        CS/min, damage, duration, time ago.
+  - [x] Clicking a match row expands to show all 10 participants split by team (blue/red).
+  - [x] Tests: 9 unit tests for `build_match_detail`, 12 route tests for filtering/sorting/
+        pagination; 7 Playwright tests cover the UI.

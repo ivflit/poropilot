@@ -82,6 +82,11 @@ class ChampionPool(BaseModel):
     top: list[ChampionStats]
 
 
+class MatchParticipant(BaseModel):
+    champion: str
+    team_id: int
+
+
 class MatchSummary(BaseModel):
     match_id: str
     champion: str
@@ -91,6 +96,32 @@ class MatchSummary(BaseModel):
     assists: int
     queue_id: int
     duration_min: float
+
+
+class MatchDetail(BaseModel):
+    match_id: str
+    champion: str
+    win: bool
+    kills: int
+    deaths: int
+    assists: int
+    cs: int
+    cs_per_min: float
+    damage: int
+    damage_per_min: float
+    gold: int
+    vision_score: int
+    role: str
+    opponent_champion: str
+    queue_id: int
+    duration_min: float
+    game_start: int  # epoch seconds
+    participants: list[MatchParticipant]
+
+
+class MatchHistoryResponse(BaseModel):
+    matches: list[MatchDetail]
+    total_fetched: int
 
 
 class ReviewIssue(BaseModel):

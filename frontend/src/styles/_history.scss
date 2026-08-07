@@ -1,0 +1,292 @@
+.history-card .card-head {
+  margin-bottom: 10px;
+}
+
+.history-filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  gap: 0;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.filter-btn {
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: var(--chip);
+  }
+
+  &.active {
+    background: var(--accent);
+    color: #fff;
+  }
+}
+
+.sort-select {
+  margin-left: auto;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--ink);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  appearance: auto;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.history-row {
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid transparent;
+  transition: border-color 0.15s;
+
+  &:hover {
+    border-color: var(--line);
+  }
+}
+
+.history-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--ink);
+  text-align: left;
+  width: 100%;
+}
+
+.h-result-bar {
+  width: 4px;
+  min-height: 40px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.bar-win {
+  background: var(--good);
+}
+
+.bar-loss {
+  background: var(--error);
+}
+
+.h-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.h-icon-sm {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.h-icon-xs {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.h-champ-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 64px;
+}
+
+.h-champ {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.h-role {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.h-vs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 80px;
+}
+
+.h-vs-label {
+  font-size: 11px;
+  color: var(--faint);
+  font-weight: 600;
+}
+
+.h-opponent {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.h-kda-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 60px;
+}
+
+.h-kda {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.h-kda-ratio {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.h-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 55px;
+}
+
+.h-stat-val {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.h-stat-label {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.h-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-left: auto;
+  min-width: 50px;
+}
+
+.h-duration {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.h-ago {
+  font-size: 11px;
+  color: var(--faint);
+}
+
+// Expanded detail
+.history-detail {
+  padding: 8px 14px 12px;
+  border-top: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+.teams-row {
+  display: flex;
+  gap: 20px;
+}
+
+.team-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.team-player {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.team-blue {
+  border-left: 2px solid var(--accent);
+  padding-left: 8px;
+}
+
+.team-red {
+  border-left: 2px solid var(--error);
+  padding-left: 8px;
+}
+
+.load-more-btn {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: var(--chip);
+  }
+
+  &:disabled {
+    color: var(--muted);
+    cursor: not-allowed;
+  }
+}
+
+// Responsive: stack stats on smaller screens
+@media (max-width: 640px) {
+  .h-vs, .h-stat:nth-child(n+2) {
+    display: none;
+  }
+
+  .history-main {
+    gap: 6px;
+    padding: 6px 8px;
+  }
+}

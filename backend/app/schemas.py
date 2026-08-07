@@ -119,9 +119,20 @@ class MatchDetail(BaseModel):
     participants: list[MatchParticipant]
 
 
+class AggregateStats(BaseModel):
+    wins: int
+    losses: int
+    win_rate: float  # 0..1
+    avg_kills: float
+    avg_deaths: float
+    avg_assists: float
+    kda_ratio: float  # (kills + assists) / deaths
+
+
 class MatchHistoryResponse(BaseModel):
     matches: list[MatchDetail]
     total_fetched: int
+    aggregate: AggregateStats
 
 
 class ReviewIssue(BaseModel):

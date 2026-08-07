@@ -5,7 +5,7 @@ Pure functions, no I/O, easy to test against fixture data.
 
 from enum import StrEnum
 
-from app.schemas import MatchDetail, MatchParticipant
+from app.schemas import AggregateStats, MatchDetail, MatchParticipant
 
 
 class MatchRole(StrEnum):
@@ -104,4 +104,28 @@ def build_match_detail(match: dict, puuid: str) -> MatchDetail | None:
         duration_min=round(duration_min, 1),
         game_start=info.get("gameStartTimestamp", 0) // 1000,
         participants=all_participants,
+    )
+
+
+def compute_aggregate(details: list[MatchDetail]) -> AggregateStats:
+    """Aggregate stats across a list of match details."""
+    if not details:
+        return AggregateStats(
+            wins=0, losses=0, win_rate=0, avg_kills=0, avg_deaths=0,
+            avg_assists=0, kda_ratio=0,
+        )
+    wins = sum(1 for d in details if d.win)
+    losses = len(details) - wins
+    total_kills = sum(d.kills for d in details)
+    total_deaths = sum(d.deaths for d in details)
+    total_assists = sum(d.assists for d in details)
+    n = len(details)
+    return AggregateStats(
+        wins=wins,
+        losses=losses,
+        win_rate=round(wins / n, 4),
+        avg_kills=round(total_kills / n, 1),
+        avg_deaths=round(total_deaths / n, 1),
+        avg_assists=round(total_assists / n, 1),
+        kda_ratio=round((total_kills + total_assists) / max(total_deaths, 1), 2),
     )

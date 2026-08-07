@@ -16,7 +16,7 @@ from app.dependencies import (
     require_ai,
 )
 from app.riot.client import RiotAPIError, RiotClient, load_profile
-from app.riot.history import MatchResult, MatchRole, MatchSort, build_match_detail
+from app.riot.history import MatchResult, MatchRole, MatchSort, build_match_detail, compute_aggregate
 from app.riot.matches import fetch_recent_matches, load_pool_for_riot_id
 from app.riot.queues import MatchQueue
 from app.riot.regions import PLATFORMS, UnknownRegionError
@@ -213,9 +213,12 @@ async def get_match_history(
         details.sort(key=lambda d: d.damage_per_min, reverse=True)
     # NEWEST is already the default order from Riot.
 
+    # Aggregate is computed over ALL filtered matches (before pagination).
+    aggregate = compute_aggregate(details)
+
     # Paginate.
     page = details[start : start + count]
-    return MatchHistoryResponse(matches=page, total_fetched=len(details))
+    return MatchHistoryResponse(matches=page, total_fetched=len(details), aggregate=aggregate)
 
 
 @router.get(

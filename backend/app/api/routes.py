@@ -5,7 +5,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from app.ai.provider import ai_enabled, patch_digest, suggest_pick
+from app.ai.provider import ai_enabled, patch_digest, review_match, suggest_pick
+from app.ai.review import derive_stats, is_ranked
 from app.cache import cache
 from app.config import settings
 from app.dependencies import (
@@ -15,10 +16,19 @@ from app.dependencies import (
     require_ai,
 )
 from app.riot.client import RiotAPIError, RiotClient, load_profile
-from app.riot.matches import load_pool_for_riot_id
+from app.riot.matches import fetch_recent_matches, load_pool_for_riot_id
 from app.riot.queues import MatchQueue
 from app.riot.regions import PLATFORMS, UnknownRegionError
-from app.schemas import Champion, ChampionPool, DraftRequest, DraftResponse, PatchDigest, Profile
+from app.schemas import (
+    Champion,
+    ChampionPool,
+    DraftRequest,
+    DraftResponse,
+    MatchReview,
+    MatchSummary,
+    PatchDigest,
+    Profile,
+)
 
 router = APIRouter(prefix="/api", tags=["poropilot"])
 
@@ -105,3 +115,102 @@ def post_draft(req: DraftRequest) -> DraftResponse:
         enemy_picks=req.enemy_picks,
     )
     return DraftResponse(**result)
+
+
+@router.get("/matches/{region}/{name}/{tag}", response_model=list[MatchSummary])
+async def get_recent_matches(
+    region: str,
+    name: str,
+    tag: str,
+    client: Annotated[RiotClient, Depends(get_riot_client)],
+    queue: Annotated[MatchQueue, Query(description="Filter matches by queue")] = MatchQueue.SOLO,
+) -> list[MatchSummary]:
+    """Recent match summaries for a player — used by the review picker."""
+    try:
+        from app.riot.regions import platform_host, regional_route
+
+        platform = platform_host(region)
+        cluster = regional_route(platform)
+        account = await client.account_by_riot_id(cluster, name, tag)
+        puuid = account["puuid"]
+    except UnknownRegionError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RiotAPIError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    matches = await fetch_recent_matches(client, region, puuid, count=10, queue=queue)
+    summaries = []
+    for m in matches:
+        for p in m.get("info", {}).get("participants", []):
+            if p.get("puuid") == puuid:
+                duration = m.get("info", {}).get("gameDuration", 0) / 60
+                summaries.append(MatchSummary(
+                    match_id=m.get("metadata", {}).get("matchId", ""),
+                    champion=p.get("championName", "?"),
+                    win=p.get("win", False),
+                    kills=p.get("kills", 0),
+                    deaths=p.get("deaths", 0),
+                    assists=p.get("assists", 0),
+                    queue_id=m.get("info", {}).get("queueId", 0),
+                    duration_min=round(duration, 1),
+                ))
+                break
+    return summaries
+
+
+@router.get(
+    "/review/{region}/{name}/{tag}/{match_id}",
+    response_model=MatchReview,
+    dependencies=[Depends(require_ai)],
+)
+async def get_review(
+    region: str,
+    name: str,
+    tag: str,
+    match_id: str,
+    client: Annotated[RiotClient, Depends(get_riot_client)],
+) -> MatchReview:
+    """AI review of a specific ranked match for the given player."""
+    # Resolve Riot ID → PUUID.
+    try:
+        from app.riot.regions import platform_host, regional_route
+
+        platform = platform_host(region)
+        cluster = regional_route(platform)
+        account = await client.account_by_riot_id(cluster, name, tag)
+        puuid = account["puuid"]
+    except UnknownRegionError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RiotAPIError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    # Check cache first.
+    cache_key = f"review:{match_id}:{puuid}"
+    cached = await cache.get(cache_key)
+    if cached is not None:
+        return MatchReview(**cached)
+
+    # Fetch the match.
+    try:
+        match = await client.match(cluster, match_id)
+    except RiotAPIError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    if not is_ranked(match):
+        raise HTTPException(status_code=422, detail="Only ranked games can be reviewed.")
+
+    stats = derive_stats(match, puuid)
+    if not stats:
+        raise HTTPException(status_code=404, detail="Player not found in this match.")
+
+    # Blocking AI call → offload to thread.
+    ai_result = await asyncio.to_thread(review_match, stats)
+
+    result = {
+        "match_id": match_id,
+        "champion": stats["champion"],
+        "win": stats["win"],
+        **ai_result,
+    }
+    await cache.set(cache_key, result, ttl=86400)
+    return MatchReview(**result)

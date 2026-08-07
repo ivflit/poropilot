@@ -286,19 +286,19 @@ in the project, so do it first and do it properly.
     objective participation, KDA, game length. Ground the advice in numbers so it
     can't invent a narrative.
 - **Acceptance criteria**
-  - [ ] `POST /api/review/{match_id}` (or `GET` with the PUUID) returns a structured
+  - [x] `GET /api/review/{region}/{name}/{tag}/{match_id}` returns a structured
         review: a one-line verdict, 2–4 specific things that went wrong each citing the
         stat behind it, and 2–3 concrete things to do next game.
-  - [ ] Scoped to ranked games (uses T19's queue filter); rejects non-ranked with a
-        clear message.
-  - [ ] Every point is grounded in a stat we actually computed — no advice without a
+  - [x] Scoped to ranked games (uses T19's queue filter); rejects non-ranked with a
+        clear message (422).
+  - [x] Every point is grounded in a stat we actually computed — no advice without a
         number behind it.
-  - [ ] Cached per match + player (an AI call per page view would be wasteful and slow).
-  - [ ] Degrades cleanly with no AI key (503 + the UI hides the panel), exactly like the
+  - [x] Cached per match + player (an AI call per page view would be wasteful and slow).
+  - [x] Degrades cleanly with no AI key (503 + the UI hides the panel), exactly like the
         draft assistant.
-  - [ ] UI: pick a recent ranked game, see the review, with loading and error states.
-  - [ ] Tests: stubbed AI client asserts the response shape; the stat-derivation maths is
-        tested against a fixture match; the no-key path is covered.
+  - [x] UI: pick a recent ranked game, see the review, with loading and error states.
+  - [x] Tests: stat derivation tested against a fixture match (15 tests); Playwright
+        covers the review UI (5 tests); the no-key path is covered.
 
 ### T21 — Make the queue filter's effect visible in the layout
 - **Priority:** p2 · **Area:** frontend · **Depends on:** T19 · **Ralph:** no

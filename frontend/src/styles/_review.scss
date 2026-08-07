@@ -1,0 +1,142 @@
+.review-card .card-head {
+  margin-bottom: 10px;
+}
+
+.match-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.match-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--ink);
+  text-align: left;
+
+  &:hover {
+    background: var(--surface-2);
+  }
+
+  &.selected {
+    border-color: var(--accent);
+    background: var(--surface-2);
+  }
+}
+
+.match-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.match-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.match-champ {
+  font-weight: 700;
+  font-size: 13px;
+  display: block;
+}
+
+.match-kda {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.match-result {
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.match-row.win .match-result {
+  color: var(--good);
+}
+
+.match-row.loss .match-result {
+  color: var(--error);
+}
+
+.review-body {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.review-verdict {
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-bottom: 14px;
+}
+
+.verdict-win {
+  background: color-mix(in srgb, var(--good) 12%, transparent);
+  color: var(--good);
+}
+
+.verdict-loss {
+  background: color-mix(in srgb, var(--error) 12%, transparent);
+  color: var(--error);
+}
+
+.review-section {
+  margin-bottom: 14px;
+}
+
+.review-issues {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.review-issue {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.issue-point {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.issue-stat {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.review-tips {
+  padding: 0 0 0 18px;
+  margin: 6px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.review-error {
+  color: var(--error);
+  font-size: 13px;
+  font-weight: 600;
+}

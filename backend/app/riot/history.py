@@ -83,6 +83,12 @@ def build_match_detail(match: dict, puuid: str) -> MatchDetail | None:
         all_participants.append(MatchParticipant(
             champion=p.get("championName", "?"),
             team_id=p.get("teamId", 0),
+            kills=p.get("kills", 0),
+            deaths=p.get("deaths", 0),
+            assists=p.get("assists", 0),
+            cs=p.get("totalMinionsKilled", 0) + p.get("neutralMinionsKilled", 0),
+            damage=p.get("totalDamageDealtToChampions", 0),
+            gold=p.get("goldEarned", 0),
         ))
 
     return MatchDetail(

@@ -85,6 +85,12 @@ class ChampionPool(BaseModel):
 class MatchParticipant(BaseModel):
     champion: str
     team_id: int
+    kills: int = 0
+    deaths: int = 0
+    assists: int = 0
+    cs: int = 0
+    damage: int = 0
+    gold: int = 0
 
 
 class MatchSummary(BaseModel):

@@ -229,15 +229,23 @@ watch([role, result, sort], loadMatches);
         <div v-if="expanded === m.match_id" class="history-detail">
           <div class="teams-row">
             <div class="team-col team-blue">
-              <div v-for="(p, i) in team(m.participants, 100)" :key="i" class="team-player">
+              <div class="team-header">Blue Team</div>
+              <div v-for="(p, i) in team(m.participants, 100)" :key="i" class="team-player-row">
                 <img v-if="champIcon(p.champion)" class="h-icon-xs" :src="champIcon(p.champion)" :alt="p.champion" />
-                <span>{{ p.champion }}</span>
+                <span class="tp-name">{{ p.champion }}</span>
+                <span class="tp-kda">{{ p.kills }}/{{ p.deaths }}/{{ p.assists }}</span>
+                <span class="tp-stat">{{ p.cs }} CS</span>
+                <span class="tp-stat">{{ p.damage.toLocaleString() }} DMG</span>
               </div>
             </div>
             <div class="team-col team-red">
-              <div v-for="(p, i) in team(m.participants, 200)" :key="i" class="team-player">
+              <div class="team-header">Red Team</div>
+              <div v-for="(p, i) in team(m.participants, 200)" :key="i" class="team-player-row">
                 <img v-if="champIcon(p.champion)" class="h-icon-xs" :src="champIcon(p.champion)" :alt="p.champion" />
-                <span>{{ p.champion }}</span>
+                <span class="tp-name">{{ p.champion }}</span>
+                <span class="tp-kda">{{ p.kills }}/{{ p.deaths }}/{{ p.assists }}</span>
+                <span class="tp-stat">{{ p.cs }} CS</span>
+                <span class="tp-stat">{{ p.damage.toLocaleString() }} DMG</span>
               </div>
             </div>
           </div>

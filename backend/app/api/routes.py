@@ -25,6 +25,8 @@ from app.schemas import (
     ChampionPool,
     DraftRequest,
     DraftResponse,
+    LiveGameParticipant,
+    LiveGameResponse,
     MatchHistoryResponse,
     MatchReview,
     MatchSummary,
@@ -91,6 +93,69 @@ async def get_pool(
     except RiotAPIError as exc:
         status = 404 if exc.status_code == 404 else 502
         raise HTTPException(status_code=status, detail=str(exc)) from exc
+
+
+@router.get("/live/{region}/{name}/{tag}", response_model=LiveGameResponse)
+async def get_live_game(
+    region: str,
+    name: str,
+    tag: str,
+    client: Annotated[RiotClient, Depends(get_riot_client)],
+    champions: Annotated[dict[int, Champion], Depends(get_champion_map)],
+) -> LiveGameResponse:
+    """Check if a summoner is in an active game and return participant info."""
+    try:
+        from app.riot.regions import platform_host, regional_route
+
+        platform = platform_host(region)
+        cluster = regional_route(platform)
+        account = await client.account_by_riot_id(cluster, name, tag)
+        puuid = account["puuid"]
+    except UnknownRegionError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RiotAPIError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    try:
+        game = await client.active_game(platform, puuid)
+    except RiotAPIError as exc:
+        if exc.status_code == 404:
+            return LiveGameResponse(in_game=False)
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    participants = []
+    for p in game.get("participants", []):
+        champ_id = p.get("championId", 0)
+        champ_info = champions.get(champ_id)
+        champ_name = champ_info.name if champ_info else f"Champion {champ_id}"
+        riot_id = p.get("riotId", "") or p.get("summonerName", "Unknown")
+
+        # Try to get rank for each participant.
+        rank_str = None
+        p_puuid = p.get("puuid")
+        if p_puuid:
+            try:
+                entries = await client.league_entries(platform, p_puuid)
+                solo = next((e for e in entries if e.get("queueType") == "RANKED_SOLO_5x5"), None)
+                if solo:
+                    rank_str = f"{solo['tier']} {solo['rank']} {solo['leaguePoints']} LP"
+            except RiotAPIError:
+                pass
+
+        participants.append(LiveGameParticipant(
+            champion_id=champ_id,
+            champion_name=champ_name,
+            team_id=p.get("teamId", 0),
+            riot_id=riot_id,
+            rank=rank_str,
+        ))
+
+    return LiveGameResponse(
+        in_game=True,
+        game_mode=game.get("gameMode", ""),
+        game_length_sec=game.get("gameLength", 0),
+        participants=participants,
+    )
 
 
 @router.post("/multi-search", response_model=MultiSearchResponse)

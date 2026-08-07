@@ -93,6 +93,15 @@ class RiotClient:
             key += f":q{queue}"
         return await self._get(region_cluster, path, ttl=120, cache_key=key)
 
+    # --- Spectator-V5 (platform) ---
+    async def active_game(self, platform: str, puuid: str):
+        return await self._get(
+            platform,
+            f"/lol/spectator/v5/active-games/by-summoner/{puuid}",
+            ttl=30,  # short TTL — game state changes rapidly
+            cache_key=f"spectator:{platform}:{puuid}",
+        )
+
     async def match(self, region_cluster: str, match_id: str):
         return await self._get(
             region_cluster,

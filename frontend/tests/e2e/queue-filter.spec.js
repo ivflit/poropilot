@@ -138,8 +138,12 @@ test("champion mastery is labelled as all-time data", async ({ page }) => {
 test("recent form card appears before the mastery card in the DOM", async ({ page }) => {
   await search(page);
 
-  // Both cards live inside .profile; recent form (with .pool) should come first.
-  const cards = page.locator(".profile > .card");
-  const firstCard = cards.first();
-  await expect(firstCard.locator("h3")).toHaveText("Recent form");
+  // Recent form must come before mastery in the profile column.
+  const headings = page.locator(".profile > .card h3");
+  const texts = await headings.allTextContents();
+  const formIdx = texts.indexOf("Recent form");
+  const masteryIdx = texts.indexOf("Champion mastery");
+  expect(formIdx).toBeGreaterThanOrEqual(0);
+  expect(masteryIdx).toBeGreaterThanOrEqual(0);
+  expect(formIdx).toBeLessThan(masteryIdx);
 });

@@ -16,7 +16,7 @@ T17 (accounts)      ── blocks ──▶ T18 (saved pools), T20 (AI review)
 T19 (match filter)  ── blocks ──▶ T20 (AI post-game review), T21 (filter layout), T22 (match history)
 ```
 
-T1–T15, T17–T27 are done. T16 awaits deploy accounts.
+T1–T15, T17–T29 are done. T16 awaits deploy accounts.
 
 ---
 
@@ -407,3 +407,15 @@ in the project, so do it first and do it properly.
   - [x] Reset button clears both filters.
   - [x] Tests: 3 backend route tests (champion, opponent, case-insensitive);
         1 Playwright test for the advanced filter.
+
+### T28 — Live game lookup: current match participants and ranks
+- **Priority:** p2 · **Area:** backend + frontend · **Depends on:** — · **Ralph:** no
+- **Why:** Knowing who you're playing with/against and their ranks is one of the most
+  used features on porofessor. The Spectator-V5 API provides this data.
+- **Acceptance criteria**
+  - [x] `RiotClient.active_game()` calls Spectator-V5; cached 30s.
+  - [x] `GET /api/live/{region}/{name}/{tag}` returns current game data with all
+        participants, their champions and ranks; 404 → `in_game: false`.
+  - [x] Frontend: LiveGame card in the profile column showing Blue/Red teams with
+        champion icons, summoner names, and rank. Refresh button. "Not in game" state.
+  - [x] Tests: 4 backend route tests; 4 Playwright tests.

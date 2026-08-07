@@ -160,6 +160,21 @@ class MultiSearchResponse(BaseModel):
     players: list[MultiSearchPlayer]
 
 
+class LiveGameParticipant(BaseModel):
+    champion_id: int
+    champion_name: str
+    team_id: int
+    riot_id: str
+    rank: str | None = None
+
+
+class LiveGameResponse(BaseModel):
+    in_game: bool
+    game_mode: str = ""
+    game_length_sec: int = 0
+    participants: list[LiveGameParticipant] = []
+
+
 class ReviewIssue(BaseModel):
     point: str
     stat: str

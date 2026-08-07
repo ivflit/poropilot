@@ -16,7 +16,7 @@ T17 (accounts)      ── blocks ──▶ T18 (saved pools), T20 (AI review)
 T19 (match filter)  ── blocks ──▶ T20 (AI post-game review), T21 (filter layout), T22 (match history)
 ```
 
-T1–T15, T17–T25 are done. T16 awaits deploy accounts.
+T1–T15, T17–T26 are done. T16 awaits deploy accounts.
 
 ---
 
@@ -387,3 +387,12 @@ in the project, so do it first and do it properly.
   - [x] Frontend: multi-search panel with paste-friendly textarea, region selector,
         per-player cards showing rank badge, win%, top 3 champions with win-rates.
   - [x] Tests: 7 backend route tests; 5 Playwright tests.
+
+### T26 — Richer match expansion: per-player stats in match detail
+- **Priority:** p2 · **Area:** backend + frontend · **Depends on:** T22 · **Ralph:** no
+- **Why:** Expanding a match row only showed champion icons. Stat sites show full per-player
+  stats (KDA, CS, damage) for all 10 players.
+- **Acceptance criteria**
+  - [x] `MatchParticipant` enriched with kills, deaths, assists, cs, damage, gold.
+  - [x] Expanded match row shows a two-column layout (Blue/Red team) with per-player stats.
+  - [x] Tests: 1 backend unit test for participant stats; 1 Playwright test for expanded detail.

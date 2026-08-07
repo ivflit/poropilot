@@ -30,9 +30,11 @@ const HISTORY = {
       role: "MIDDLE", opponent_champion: "Zed", queue_id: 420, duration_min: 30.0,
       game_start: now - 3600,
       participants: [
-        { champion: "Ahri", team_id: 100 }, { champion: "LeeSin", team_id: 100 },
-        { champion: "Ashe", team_id: 100 }, { champion: "Zed", team_id: 200 },
-        { champion: "Ahri", team_id: 200 },
+        { champion: "Ahri", team_id: 100, kills: 8, deaths: 2, assists: 10, cs: 210, damage: 22000, gold: 14000 },
+        { champion: "LeeSin", team_id: 100, kills: 5, deaths: 3, assists: 12, cs: 80, damage: 15000, gold: 11000 },
+        { champion: "Ashe", team_id: 100, kills: 6, deaths: 4, assists: 8, cs: 190, damage: 18000, gold: 12500 },
+        { champion: "Zed", team_id: 200, kills: 4, deaths: 7, assists: 3, cs: 170, damage: 16000, gold: 10000 },
+        { champion: "Ahri", team_id: 200, kills: 3, deaths: 5, assists: 6, cs: 160, damage: 14000, gold: 9500 },
       ],
     },
     {
@@ -124,6 +126,17 @@ test("clicking a match expands to show participants", async ({ page }) => {
   await expect(detail).toBeVisible();
   await expect(detail.locator(".team-blue")).toBeVisible();
   await expect(detail.locator(".team-red")).toBeVisible();
+});
+
+test("expanded match shows per-player stats", async ({ page }) => {
+  await searchPlayer(page);
+  await page.locator(".history-main").first().click();
+  const detail = page.locator(".history-detail").first();
+  await expect(detail).toContainText("8/2/10"); // Ahri's KDA
+  await expect(detail).toContainText("210 CS");
+  await expect(detail).toContainText("22,000 DMG");
+  await expect(detail).toContainText("Blue Team");
+  await expect(detail).toContainText("Red Team");
 });
 
 test("role filter shows only matching matches", async ({ page }) => {

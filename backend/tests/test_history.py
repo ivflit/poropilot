@@ -99,6 +99,17 @@ class BuildMatchDetailTests(unittest.TestCase):
         champs = [p.champion for p in d.participants]
         self.assertIn("Ahri", champs)
 
+    def test_participants_have_stats(self):
+        m = _match("M1")
+        d = build_match_detail(m, PUUID)
+        p = d.participants[0]
+        self.assertEqual(p.kills, 3)
+        self.assertEqual(p.deaths, 2)
+        self.assertEqual(p.assists, 7)
+        self.assertEqual(p.cs, 160)  # 150 + 10
+        self.assertEqual(p.damage, 18000)
+        self.assertEqual(p.gold, 12000)
+
     def test_returns_none_for_missing_puuid(self):
         m = _match("M1")
         self.assertIsNone(build_match_detail(m, "not-in-match"))

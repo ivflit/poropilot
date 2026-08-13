@@ -6,6 +6,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from app.ai.provider import ai_enabled, generate_tier_list, patch_digest, review_match, suggest_pick
+from app.ratelimit import limiter
 from app.ai.review import derive_stats, is_ranked
 from app.cache import cache
 from app.config import settings
@@ -64,7 +65,9 @@ async def list_champions(
 
 
 @router.get("/summoner/{region}/{name}/{tag}", response_model=Profile)
+@limiter.limit("20/minute")
 async def get_summoner(
+    request: Request,
     region: str,
     name: str,
     tag: str,
@@ -80,7 +83,9 @@ async def get_summoner(
 
 
 @router.get("/pool/{region}/{name}/{tag}", response_model=ChampionPool)
+@limiter.limit("20/minute")
 async def get_pool(
+    request: Request,
     region: str,
     name: str,
     tag: str,
@@ -97,7 +102,9 @@ async def get_pool(
 
 
 @router.get("/live/{region}/{name}/{tag}", response_model=LiveGameResponse)
+@limiter.limit("10/minute")
 async def get_live_game(
+    request: Request,
     region: str,
     name: str,
     tag: str,
@@ -162,7 +169,9 @@ async def get_live_game(
 
 
 @router.post("/multi-search", response_model=MultiSearchResponse)
+@limiter.limit("10/minute")
 async def multi_search(
+    request: Request,
     req: MultiSearchRequest,
     client: Annotated[RiotClient, Depends(get_riot_client)],
 ) -> MultiSearchResponse:
@@ -209,7 +218,9 @@ async def multi_search(
 
 
 @router.get("/patch-digest", response_model=PatchDigest, dependencies=[Depends(require_ai)])
+@limiter.limit("5/minute")
 async def get_patch_digest(
+    request: Request,
     champions: Annotated[list[str], Query()],
     version: Annotated[str, Depends(get_ddragon_version)],
 ) -> PatchDigest:
@@ -224,7 +235,9 @@ async def get_patch_digest(
 
 
 @router.get("/tier-list", response_model=TierListResponse, dependencies=[Depends(require_ai)])
+@limiter.limit("5/minute")
 async def get_tier_list(
+    request: Request,
     role: Annotated[str, Query(description="Role: TOP, JUNGLE, MID, ADC, SUPPORT")],
     version: Annotated[str, Depends(get_ddragon_version)],
 ) -> TierListResponse:
@@ -241,7 +254,8 @@ async def get_tier_list(
 
 
 @router.post("/draft", response_model=DraftResponse, dependencies=[Depends(require_ai)])
-def post_draft(req: DraftRequest) -> DraftResponse:
+@limiter.limit("10/minute")
+def post_draft(request: Request, req: DraftRequest) -> DraftResponse:
     # The Anthropic sync client is blocking; declaring this endpoint with plain
     # `def` lets FastAPI run it in its threadpool, so the event loop isn't blocked.
     result = suggest_pick(
@@ -255,7 +269,9 @@ def post_draft(req: DraftRequest) -> DraftResponse:
 
 
 @router.get("/matches/{region}/{name}/{tag}", response_model=list[MatchSummary])
+@limiter.limit("20/minute")
 async def get_recent_matches(
+    request: Request,
     region: str,
     name: str,
     tag: str,
@@ -296,7 +312,9 @@ async def get_recent_matches(
 
 
 @router.get("/history/{region}/{name}/{tag}", response_model=MatchHistoryResponse)
+@limiter.limit("20/minute")
 async def get_match_history(
+    request: Request,
     region: str,
     name: str,
     tag: str,
@@ -367,7 +385,9 @@ async def get_match_history(
     response_model=MatchReview,
     dependencies=[Depends(require_ai)],
 )
+@limiter.limit("5/minute")
 async def get_review(
+    request: Request,
     region: str,
     name: str,
     tag: str,

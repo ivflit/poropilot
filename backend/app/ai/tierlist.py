@@ -78,7 +78,7 @@ def tier_list_gemini(role: str, patch: str) -> dict:
     client = genai.Client(api_key=settings.gemini_api_key)
     prompt = f"Role: {role}\nPatch: {patch}\n\nGenerate the tier list."
     response = client.models.generate_content(
-        model="gemini-2.0-flash",
+        model=settings.gemini_model,
         contents=prompt,
         config=GenerateContentConfig(
             system_instruction=_INSTRUCTION,

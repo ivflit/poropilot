@@ -6,7 +6,6 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from app.ai.provider import ai_enabled, generate_tier_list, patch_digest, review_match, suggest_pick
-from app.ratelimit import limiter
 from app.ai.review import derive_stats, is_ranked
 from app.cache import cache
 from app.config import settings
@@ -16,6 +15,7 @@ from app.dependencies import (
     get_riot_client,
     require_ai,
 )
+from app.ratelimit import limiter
 from app.riot.client import RiotAPIError, RiotClient, load_profile
 from app.riot.history import MatchResult, MatchRole, MatchSort, build_match_detail, compute_aggregate
 from app.riot.matches import analyse_champion_pool, fetch_recent_matches, load_pool_for_riot_id

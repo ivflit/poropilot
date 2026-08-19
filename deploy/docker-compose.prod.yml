@@ -3,6 +3,9 @@ services:
     image: ghcr.io/ivflit/poropilot-nginx:latest
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/ssl/poropilot:/etc/ssl/poropilot:ro
     depends_on:
       - backend
     restart: unless-stopped

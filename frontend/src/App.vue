@@ -5,6 +5,7 @@ import DraftAssistant from "./components/DraftAssistant.vue";
 import MultiSearch from "./components/MultiSearch.vue";
 import TierList from "./components/TierList.vue";
 import AuthModal from "./components/AuthModal.vue";
+import PrivacyPolicy from "./components/PrivacyPolicy.vue";
 import { useSummoner } from "./composables/useSummoner";
 import { useConfig } from "./composables/useConfig";
 import { useTheme } from "./composables/useTheme";
@@ -17,6 +18,7 @@ const { theme, toggle } = useTheme();
 const { user, isLoggedIn, logout, restore } = useSession();
 
 const showAuth = ref(false);
+const showPrivacy = ref(false);
 
 // Champion names from the analysed pool, for seeding the draft assistant.
 const poolChampionNames = computed(() =>
@@ -108,10 +110,14 @@ onMounted(async () => {
           PoroPilot isn't endorsed by Riot Games and doesn't reflect the views of Riot Games or
           anyone officially involved in producing League of Legends.
         </div>
-        <div>Champion art © Riot Games · Data via Data Dragon.</div>
+        <div>
+          Champion art © Riot Games · Data via Data Dragon.
+          · <a href="#" class="footer-link" @click.prevent="showPrivacy = true">Privacy Policy</a>
+        </div>
       </footer>
     </div>
 
     <AuthModal v-if="showAuth" @close="showAuth = false" />
+    <PrivacyPolicy v-if="showPrivacy" @close="showPrivacy = false" />
   </div>
 </template>

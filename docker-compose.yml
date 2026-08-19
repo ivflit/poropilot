@@ -16,10 +16,26 @@ services:
       - ./backend/.env
     environment:
       - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql+asyncpg://poropilot:${POSTGRES_PASSWORD}@postgres:5432/poropilot
     depends_on:
       - redis
+      - postgres
 
   redis:
     image: redis:7-alpine
     expose:
       - "6379"
+
+  postgres:
+    image: postgres:16-alpine
+    expose:
+      - "5432"
+    environment:
+      - POSTGRES_USER=poropilot
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=poropilot
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

@@ -1,8 +1,17 @@
 services:
+  nginx:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
   backend:
     build: ./backend
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     env_file:
       - ./backend/.env
     environment:
@@ -10,16 +19,7 @@ services:
     depends_on:
       - redis
 
-  frontend:
-    build: ./frontend
-    ports:
-      - "5173:5173"
-    environment:
-      - VITE_API_BASE=http://localhost:8000
-    depends_on:
-      - backend
-
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    expose:
+      - "6379"

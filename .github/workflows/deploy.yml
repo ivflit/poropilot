@@ -1,16 +1,43 @@
 name: Deploy
 
-# Deploys on every push to main — but only once you've turned it on by setting
-# the repo variable DEPLOY_ENABLED = true (Settings → Secrets and variables →
-# Actions → Variables) and adding the secrets below. Until then this job is
-# skipped, so it never turns the build red.
-
 on:
   push:
     branches: [main]
 
 jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    if: ${{ vars.DEPLOY_ENABLED == 'true' }}
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: ghcr.io/ivflit/poropilot-backend:latest
+
+      - name: Build and push nginx image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/Dockerfile.nginx
+          push: true
+          tags: ghcr.io/ivflit/poropilot-nginx:latest
+
   deploy:
+    needs: build-and-push
     runs-on: ubuntu-latest
     if: ${{ vars.DEPLOY_ENABLED == 'true' }}
     steps:
@@ -21,6 +48,6 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
-            cd ${{ secrets.DEPLOY_PATH }}
-            git pull --ff-only
-            docker compose -f deploy/docker-compose.prod.yml up -d --build
+            cd ~/poropilot
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d
